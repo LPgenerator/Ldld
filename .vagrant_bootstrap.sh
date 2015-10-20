@@ -23,13 +23,17 @@ apt-get install -y lxc ubuntu-zfs nginx golang git
 
 if [ "`hostname`" == "ldl-master" ]; then
     rm /usr/share/nginx/html/*.html
-    touch /etc/nginx/sites-enabled/default && cat > /etc/nginx/sites-enabled/default << END
+    cat > /etc/nginx/sites-enabled/default << END
 server {
     root /usr/share/nginx/html;
     listen 80 default_server;
     server_name _;
 
     location / {
+        if (\$http_user_agent !~ (Go|Wget) ) {
+            return 403;
+        }
+
         autoindex on;
     }
 }
@@ -41,13 +45,6 @@ fi
 modprobe zfs
 zpool create -f lpg /dev/sdb
 zfs create lpg/lxc
-
-echo "268435456" > /sys/module/zfs/parameters/zfs_arc_min
-echo "1073741824" > /sys/module/zfs/parameters/zfs_arc_max
-echo "options zfs zfs_prefetch_disable=1" > /etc/modprobe.d/zfs.conf
-echo "options zfs zfs_arc_memory_throttle_disable=1" > /etc/modprobe.d/zfs.conf
-echo "options zfs zfs_arc_min=268435456" >> /etc/modprobe.d/zfs.conf
-echo "options zfs zfs_arc_max=1073741824" >> /etc/modprobe.d/zfs.conf
 
 export GOPATH="/root/.go"
 export PATH=$PATH:$GOROOT/bin:$GOPATH/bin

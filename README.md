@@ -18,9 +18,11 @@ Work with your containers such as git from command line and with HTTP REST Api.
     sudo -i
     ldld create web                             # create new basic CT (ubuntu by default)
     ldld start web                              # start CT
-    ldld commit web                             # first commit
+    ldld info web                               # check CT state
+    ldld commit web                             # initial commit
     ldld exec web 'touch hello.txt'             # create new file
     ldld commit web                             # new commit with file
+    ldld log web                                # show commits
     ldld push web                               # push all commits to repo
     
     # Slave
