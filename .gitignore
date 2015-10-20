@@ -1,0 +1,12 @@
+config.toml
+.idea
+*.iml
+out
+main
+*.bak
+.vagrant
+*.log
+TODO
+*.vdi
+vagrant
+*.tar.gz

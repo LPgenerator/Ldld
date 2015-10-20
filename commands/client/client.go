@@ -1,0 +1,411 @@
+package client
+
+import (
+	"os"
+	"fmt"
+	"regexp"
+	"strconv"
+	"strings"
+	"net/http"
+	"io/ioutil"
+
+	"github.com/LPgenerator/Ldld/helpers"
+)
+
+type LdlCli struct{
+	path  string
+	repo  string
+}
+
+var CT_TEMPLATE = `
+lxc.include = /usr/share/lxc/config/ubuntu.common.conf
+
+lxc.rootfs = /var/lib/lxc/%s/rootfs
+lxc.utsname = %s
+lxc.arch = amd64
+
+lxc.network.type = veth
+lxc.network.flags = up
+lxc.network.link = lxcbr0
+`
+
+var CT_IFCONFIG = `
+auto lo
+  iface lo inet loopback
+
+iface eth0 inet static
+  address %s
+  netmask 255.255.0.0
+  broadcast 10.1.255.255
+  gateway 10.0.3.1
+  dns-nameservers 8.8.8.8
+  dns-nameservers 8.8.4.4
+`
+
+var (
+	PORT_FORWARD = `iptables -t nat -A PREROUTING -p tcp --dport %s -j DNAT --to %s:%s`
+	RM_PORT_FORWARD = `iptables -t nat -L PREROUTING -n -v --line-numbers| grep %s| awk '{print $1}'| xargs iptables -t nat -D PREROUTING`
+	SET_FS_MOUNT_POINT = `zfs set mountpoint=/var/lib/lxc/%s/rootfs lpg/lxc/%s`
+	OPTIMIZE_FS_SYNC = `zfs set sync=disabled %s`
+	OPTIMIZE_FS_CKSUM = `zfs set checksum=off %s`
+	CLONE_FS = `zfs clone %s lpg/lxc/%s`
+	CLONE_FS_FROM = `zfs list -t snapshot|grep %s@%s|tail -1|awk "{print \$1}"`
+	WGET = `wget -c --retry-connrefused -t 0 %s/%s/%s -O %s/%s/%s`
+	LinksRegexp = regexp.MustCompile(`">(.*?)/?</a>`)
+	DESTROY_CT = `zfs destroy -rR lpg/lxc/%s >&/dev/null; lxc-destroy -f -n %s`
+	EMPTY_CMD = ``
+	MIGRATE_CFG = `scp /var/lib/lxc/%s/config %s:/var/lib/lxc/%s/`
+	MIGRATE_ZFS = `zfs send lpg/lxc/%s@migrate | ssh %s zfs recv -F lpg/lxc/%s`
+	MIGRATE_MP = `ssh %s zfs set mountpoint=/var/lib/lxc/%s/rootfs lpg/lxc/%s`
+)
+
+
+func New(path string, repo string) (*LdlCli) {
+	strm := &LdlCli{
+		path: path,
+		repo: repo,
+	}
+	return strm
+}
+
+
+// ## LXC IMPLEMENTATION ## //
+func (c *LdlCli) Create(template string, name string) map[string]string {
+	if template == "" || name == "" {
+		return c.errorMsg("Template or Name is not set!")
+	}
+
+	number := ""
+	if strings.Contains(template, ":") {
+		data := strings.Split(template, ":")
+		template = data[0]
+		number = "snap" + data[1]
+	}
+
+	err := os.MkdirAll("/var/lib/lxc/" + name, 0755)
+	if err != nil {
+		return c.errorMsg("Can not create directory")
+	}
+
+	filename := fmt.Sprintf("/var/lib/lxc/%s/config", name)
+	data := fmt.Sprintf(CT_TEMPLATE, name, name)
+	err = ioutil.WriteFile(filename, []byte(data), 0644)
+	if err != nil {
+		return c.errorMsg("Can not write config")
+	}
+
+	res := helpers.ExecRes(CLONE_FS_FROM, template, number)
+	if res["status"] != "ok" {
+		return c.errorMsg("Can not get snapshots")
+	}
+
+	res = helpers.ExecRes(CLONE_FS, res["message"], name)
+	if res["status"] != "ok" {
+		return c.errorMsg("Can not clone fs")
+	}
+
+	res = helpers.ExecRes(SET_FS_MOUNT_POINT, name, name)
+	if res["status"] != "ok" {
+		return c.errorMsg("Can not set mount point")
+	}
+
+	helpers.ExecRes(OPTIMIZE_FS_SYNC, name)
+	helpers.ExecRes(OPTIMIZE_FS_CKSUM, name)
+
+	// save CT hostname
+	ct_etc := fmt.Sprintf("/var/lib/lxc/%s/rootfs/etc", name)
+	helpers.ExecRes("echo %s > %s/hostname", name, ct_etc)
+	helpers.ExecRes("echo '%s\t127.0.0.1' >> %s/hosts", name, ct_etc)
+
+	return map[string]string{"status": "ok", "message": "success"}
+}
+
+func (c *LdlCli) Destroy(name string) map[string]string  {
+	//todo: c.Stop(name)
+	res := helpers.ExecRes("cat /var/lib/lxc/%s/config |grep ipv4|awk '{print $3}'", name)
+	if res["status"] == "ok" && res["message"] != "" {
+		helpers.ExecRes(RM_PORT_FORWARD, res["message"])
+		helpers.ExecRes("service iptables-persistent save")
+	}
+	return helpers.ExecRes(DESTROY_CT, name, name)
+}
+
+
+// ## REPOSITORY CLIENT IMPLEMENTATION ## //
+func (c *LdlCli) Mount(src string, dist string) map[string]string {
+	// todo: реализовать это дело
+	// zfs set mountpoint=/var/lib/lxc/%(VM-NAME)s/rootfs/%(DST)s lpg/lxc/%(SRC)s
+	// lxc.mount.entry = /media/data/share share/folder none bind 0.0
+	return c.errorMsg("Not implemented")
+}
+
+func (c *LdlCli) Autostart(name string, value string) map[string]string {
+	if !c.doSaveConfigDirective(name, "lxc.start.auto", value) {
+		return c.errorMsg("Can not update config")
+	}
+	return map[string]string{"status": "ok", "message": "success"}
+}
+
+func (c *LdlCli) Ip(name string, value string) map[string]string {
+	// todo: move default gw to config
+	if value == "" {
+		return c.errorMsg("VM is not running")
+	}
+	if value == "fix" {
+		res := c.getIP(name)
+		value = strings.Trim(res["message"], " ")
+		if res["status"] != "ok" {
+			return res
+		}
+	}
+	// save to lxc config
+	if !c.doSaveConfigDirective(name, "lxc.network.ipv4", value) {
+		return c.errorMsg("Can not update config")
+	}
+	if !c.doSaveConfigDirective(name, "lxc.network.ipv4.gateway", "auto") {
+		return c.errorMsg("Can not update config")
+	}
+
+	// dns
+	ct_etc := fmt.Sprintf("/var/lib/lxc/%s/rootfs/etc", name)
+	dns_cfg := fmt.Sprintf("%s/resolvconf/resolv.conf.d/original", ct_etc)
+	dns_res := helpers.ExecRes("echo 'nameserver 8.8.8.8' > %s", dns_cfg)
+	if dns_res["status"] != "ok" {
+		return c.errorMsg("Can not write ct dns config")
+	}
+
+	// ifconfig
+	ct_iface_file := fmt.Sprintf("%s/network/interfaces", ct_etc)
+	if ioutil.WriteFile(ct_iface_file, []byte(fmt.Sprintf(CT_IFCONFIG, value)), 0644) != nil {
+		return c.errorMsg("Can not write ct ip config")
+	}
+
+	return map[string]string{"status": "ok", "message": "success"}
+}
+
+func (c *LdlCli) Forward(name string, value string) map[string]string {
+	if value == "" {
+		return c.errorMsg("Ports not set!")
+	}
+	res := c.Ip(name, "fix")
+	if res["status"] != "ok" {
+		return res
+	}
+	res = c.getIP(name)
+	ip := strings.Trim(res["message"], "")
+	data := strings.Split(value, ":")
+	if len(data) != 2 {
+		return c.errorMsg("Error ports format")
+	}
+	res = helpers.ExecRes(PORT_FORWARD, data[0], ip, data[1])
+	helpers.ExecRes("service iptables-persistent save")
+	return res
+}
+
+func (c *LdlCli) Memory(name string, value string) map[string]string {
+	return c.doCGroup(name, "memory.limit_in_bytes", c.convertMbToBytes(value))
+}
+
+func (c *LdlCli) Swap(name string, value string) map[string]string {
+	//CONFIG_CGROUP_MEM_RES_CTLR_SWAP=y ???
+	return c.doCGroup(name, "memory.memsw.limit_in_bytes", c.convertMbToBytes(value))
+}
+
+func (c *LdlCli) Cpu(name string, value string) map[string]string {
+	return c.doCGroup(name, "cpu.shares", value)
+}
+
+func (c *LdlCli) Cgroup(name string, group string, value string) map[string]string {
+	return c.doCGroup(name, group, value)
+}
+
+func (c *LdlCli) Images() map[string]string {
+	data := ""
+
+	os.MkdirAll(c.path, 0755)
+
+	local, _ := c.getLocalFiles(c.path)
+	data += "Local:\n"
+	for _, f := range local {
+		data += fmt.Sprintf("\t%s\n", f)
+	}
+
+	remote, err := c.getRemoteFiles(c.repo)
+	data += "\nRemote:\n"
+	if err == nil {
+		for _, d := range remote {
+			data += fmt.Sprintf("\t%s\n", d)
+		}
+	} else {
+		data += fmt.Sprintf("\terror:%s\n", err.Error())
+	}
+	return map[string]string{"status": "ok", "message": data}
+}
+
+func (c *LdlCli) Pull(dist string) map[string]string {
+	data := ""
+	remote, err := c.getRemoteFiles(fmt.Sprintf("%s/%s/", c.repo, dist))
+	errMake := os.MkdirAll(c.path + "/" + dist, 0755)
+
+	if err == nil && errMake == nil {
+		for _, d := range(remote) {
+			data += fmt.Sprintf("\t%s\n", d)
+			helpers.ExecRes(WGET, c.repo, dist, d, c.path, dist, d)
+		}
+
+		return c.importFromPath(dist, remote)
+	} else {
+		return c.errorMsg(err.Error())
+	}
+}
+
+func (c *LdlCli) Import(dist string) map[string]string {
+	local, _ := c.getLocalFiles(fmt.Sprintf("%s/%s", c.path, dist))
+	if len(local) > 0 {
+		return c.importFromPath(dist, local)
+	}
+	return map[string]string{"status": "ok", "message": "success"}
+}
+
+func (c *LdlCli) Migrate(name string, ssh string) map[string]string {
+	res := helpers.ExecRes("ssh %s 'mkdir -p /var/lib/lxc/%s/'", ssh, name)
+	if res["status"] != "ok" {
+		return res
+	}
+
+	res = helpers.ExecRes(MIGRATE_CFG, name, ssh, name)
+	if res["status"] != "ok" {
+		return res
+	}
+
+	res = helpers.ExecRes("zfs destroy lpg/lxc/%s@migrate", name)
+	if res["status"] != "ok" {
+		return res
+	}
+
+	res = helpers.ExecRes("zfs snapshot lpg/lxc/%s@migrate", name)
+	if res["status"] != "ok" {
+		return res
+	}
+
+	res = helpers.ExecRes(MIGRATE_ZFS, name, ssh, name)
+	if res["status"] != "ok" {
+		return res
+	}
+
+	res = helpers.ExecRes(MIGRATE_MP, ssh, name, name)
+	if res["status"] != "ok" {
+		return res
+	}
+	return map[string]string{"status": "ok", "message": "success"}
+}
+
+func (c *LdlCli) getIP(name string) map[string]string {
+	cmd := fmt.Sprintf("lxc-info -n %s|grep IP|awk '{print $2}'", name)
+	return helpers.ExecRes(cmd)
+}
+
+func (c *LdlCli) importFromPath(dist string, path []string) map[string]string {
+	for i, _ := range(path) {
+		chk := helpers.ExecRes(
+			"zfs list -t snapshot|grep lpg/lxc/web@snap%d", i)
+		if chk["status"] == "ok" && chk["message"] != "" {
+			continue
+		}
+
+		fmt.Println(fmt.Sprintf("> snap%d", i))
+		res := helpers.ExecRes(
+			"cat %s/%s/%d.img | zfs receive lpg/lxc/%s",
+			c.path, dist, i, dist)
+		if res["status"] != "ok" {
+			return res
+		}
+	}
+	return map[string]string{"status": "ok", "message": "success"}
+}
+
+func (c *LdlCli) errorMsg(message string) map[string]string {
+	return map[string]string{"status": "error", "message": message}
+}
+
+func (c *LdlCli) getRemoteFiles(uri string) ([]string, error) {
+	response, err := http.Get(uri)
+	data := []string{}
+	if err == nil {
+		defer response.Body.Close()
+		contents, err := ioutil.ReadAll(response.Body)
+		if err == nil {
+			dl := LinksRegexp.FindAllStringSubmatch(string(contents), -1)
+			for _, d := range dl {
+				if d[1] != ".." {
+					data = append(data, d[1])
+				}
+			}
+		}
+	}
+	if err != nil {
+		return data, err
+	}
+	return data, nil
+}
+
+func (c *LdlCli) getLocalFiles(path string) ([]string, error) {
+	data := []string{}
+
+	files, _ := ioutil.ReadDir(path)
+	for _, f := range files {
+		data = append(data, f.Name())
+	}
+	return data, nil
+}
+
+func (c *LdlCli) doCGroup(name string, group string, value string) map[string]string {
+	if name == "" || group == "" || value == "" {
+		return c.errorMsg("All values must be set!")
+	}
+	res := helpers.ExecRes("lxc-cgroup -n %s %s %s", name, group, value)
+	if res["status"] != "ok" {
+		return res
+	}
+	if !c.doSaveConfigDirective(name, "lxc.cgroup." + group, value) {
+		return c.errorMsg("Can not update config")
+	}
+	return res
+}
+
+func (c *LdlCli) doSaveConfigDirective(name string, group string, value string) bool {
+	config_filename := fmt.Sprintf("/var/lib/lxc/%s/config", name)
+	config, err := ioutil.ReadFile(config_filename)
+	if err != nil { return false }
+	new_config := ""
+	cfg_found := false
+	for _, line := range strings.Split(string(config), "\n") {
+		if strings.HasPrefix(line, group + " =") {
+			if value != "0" {
+				new_config += fmt.Sprintf("%s = %s\n", group, value)
+				cfg_found = true
+			}
+		} else {
+			if line != "" {
+				new_config += line + "\n"
+			}
+		}
+	}
+	if cfg_found == false && value != "0" {
+		new_config += fmt.Sprintf("%s = %s\n", group, value)
+	}
+	fmt.Println(new_config)
+	if ioutil.WriteFile(config_filename, []byte(new_config), 0644) == nil {
+		return true
+	}
+	return false
+}
+
+func (c *LdlCli) convertMbToBytes(value string) string {
+	num, err := strconv.Atoi(value)
+	if err == nil {
+		val := strconv.Itoa(num * 1024 * 1024)
+		return val
+	}
+	return "0"
+}

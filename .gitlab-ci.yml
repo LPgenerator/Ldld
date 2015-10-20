@@ -1,0 +1,6 @@
+'':
+  script:
+  - make run_ci_test
+  tags:
+  except:
+  - tags

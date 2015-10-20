@@ -1,0 +1,41 @@
+#!/bin/sh
+
+set -e
+
+# detect user: first try to use ldld
+for USER in ldld; do
+  if id -u "$USER" >/dev/null 2>/dev/null; then
+    echo "ldld: detected user $USER"
+    break
+  fi
+done
+
+# create user if doesn't exist: it will create ldld if not found
+if ! id -u "$USER" >/dev/null 2>/dev/null; then
+  echo "ldld: creating $USER..."
+  useradd --shell /bin/bash -m -d /home/$USER $USER
+fi
+
+# get USER home directory
+eval HOMEDIR=~$USER
+
+# create empty config and re-register LB
+mkdir -p /etc/ldld
+chmod 0700 /etc/ldld
+if [ -f $HOMEDIR/config.toml ] && [ ! -f /etc/ldld/config.toml ]; then
+  echo "ldld: importing configuration to /etc/ldld/config.toml"
+  cp $HOMEDIR/config.toml /etc/ldld/config.toml
+  chmod 0600 /etc/ldld/config.toml
+fi
+
+# uninstall old service
+ldld service-stop --service="ldld" >/dev/null 2>/dev/null || :
+ldld service-uninstall --service="ldld" >/dev/null 2>/dev/null || :
+
+# re-register LB
+ldld service-stop >/dev/null 2>/dev/null || :
+ldld service-uninstall >/dev/null 2>/dev/null || :
+ldld service-install --user=$USER --working-directory=$HOMEDIR
+
+# start LB service
+ldld service-start || :

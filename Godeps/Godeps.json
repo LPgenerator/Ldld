@@ -1,0 +1,40 @@
+{
+	"ImportPath": "github.com/LPgenerator/Ldld",
+	"GoVersion": "go1.5.1",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/BurntSushi/toml",
+			"Comment": "v0.1.0-9-g3883ac1",
+			"Rev": "3883ac1ce943878302255f538fce319d23226223"
+		},
+		{
+			"ImportPath": "github.com/Sirupsen/logrus",
+			"Comment": "v0.8.7",
+			"Rev": "418b41d23a1bf978c06faea5313ba194650ac088"
+		},
+		{
+			"ImportPath": "github.com/ayufan/golang-kardianos-service",
+			"Rev": "c03d3ad4a038e0183fcddfe1f640089b894796c5"
+		},
+		{
+			"ImportPath": "github.com/codegangsta/cli",
+			"Comment": "1.2.0-139-g142e6cd",
+			"Rev": "142e6cd241a4dfbf7f07a018f1f8225180018da4"
+		},
+		{
+			"ImportPath": "gitlab.com/ayufan/golang-cli-helpers",
+			"Rev": "0a14b63a7466ee44de4a90f998fad73afa8482bf"
+		},
+		{
+			"ImportPath": "github.com/codegangsta/negroni",
+			"Rev": "46a638d98be2af4fa6de146b5d28a9d9904a3949"
+		},
+		{
+			"ImportPath": "github.com/mailgun/oxy",
+			"Rev": "547c334d658398c05b346c0b79d8f47ba2e1473b"
+		}
+	]
+}

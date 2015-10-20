@@ -1,0 +1,14 @@
+#include<stdio.h>
+
+//gcc -o mem-test mem-test.c
+//cp mem-test /var/lib/lxc/web-1/rootfs/root/mem-test
+
+int main(void) {
+    int i;
+    for (i=0; i<65536; i++) {
+        char *q = malloc(65536);
+        printf("Malloced: %ld\n", 65536*i);
+    }
+    sleep(9999999);
+}
+

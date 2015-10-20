@@ -1,0 +1,5 @@
+#!/bin/sh
+
+ldld service-stop >/dev/null 2>/dev/null
+ldld service-uninstall >/dev/null 2>/dev/null
+exit 0
