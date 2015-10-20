@@ -11,7 +11,7 @@ Work with your containers such as git from command line and with HTTP REST Api.
 
     # Clone and up VM's
     git clone --depth 1 https://github.com/LPgenerator/Ldld.git; cd Ldld
-    vagrant up
+    vagrant up --provider virtualbox
     
     # Master
     vagrant ssh master

@@ -3,9 +3,10 @@
     images                            List the images existing on the system.
     pull       <image>                Pull and apply images updates from repository.
     import     <image>                Import images and apply when used export command on master.
-    create     <ct-name> <image>      Create a container.
-    log        <ct-name>              List an existing snapshots for container.
+    create     <ct-name> <image>      Creates a container from specified image.
     migrate    <ct-name> <u@ssh.dst>  Migrate CT to a new host.
+    log        <ct-name>              List an existing snapshots for container.
+    run                               Run Ldl http API.
     
     start      <ct-name>              Run container.
     stop       <ct-name>              Stop a container.
@@ -16,7 +17,6 @@
     attach     <ct-name>              Enter into a running container.
     exec       <ct-name> <cmd>        Execute the command inside CT.
     list                              List the containers existing on the system.
-    run                               Run Ldl http API.
     
     autostart  <ct-name> <value>      Autostart after a reboot (0 or 1).
     forward    <ct-name> <src:dst>    Port forwarding (ip will be fixed).
