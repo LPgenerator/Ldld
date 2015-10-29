@@ -25,6 +25,9 @@
 		server_name _;
 	
 		location / {
+			if (\$http_user_agent !~ (Go|Wget) ) {
+				return 403;
+			}
 			autoindex on;
 		}
 	}
@@ -33,8 +36,9 @@
 
 	# fs configuration
 	modprobe zfs
-	zpool create lpg /dev/sdb
+	zpool create lpg -f /dev/sdb
 	zfs create lpg/lxc
+	apt-get clean
 
 
 ### Create CT

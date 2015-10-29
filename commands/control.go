@@ -113,6 +113,9 @@ func (r *RunShell) RunLdlControlCli(c *cli.Context) {
 	r.regCmd(cli, c, "cgroup", "Cgroup", key, val, c.Args().Get(2))
 	r.regCmd(cli, c, "autostart", "Autostart", key, val)
 	r.regCmd(cli, c, "forward", "Forward", key, val)
+
+	r.regCmd(cli, c, "mount", "Mount", key, val, c.Args().Get(2))
+	r.regCmd(cli, c, "unmount", "Unmount", key, val)
 }
 
 func init() {
@@ -156,6 +159,8 @@ func init() {
 		"swap": "Swap limits. Set a maximum swap (on MB).",
 		"cpu": "CPU limits based on CPU shares.",
 		"cgroup": "",
+		"mount": "",
+		"unmount": "",
 		"autostart": "Autostart after a reboot (0 or 1).",
 		"forward": "Port forwarding (ip will be fixed).",
 		"ip": "Static IP. If value = 'fix', current IP will be fixed.",

@@ -46,8 +46,9 @@ var (
 	PORT_FORWARD = `iptables -t nat -A PREROUTING -p tcp --dport %s -j DNAT --to %s:%s`
 	RM_PORT_FORWARD = `iptables -t nat -L PREROUTING -n -v --line-numbers| grep %s| awk '{print $1}'| xargs iptables -t nat -D PREROUTING`
 	SET_FS_MOUNT_POINT = `zfs set mountpoint=/var/lib/lxc/%s/rootfs lpg/lxc/%s`
-	OPTIMIZE_FS_SYNC = `zfs set sync=disabled %s`
-	OPTIMIZE_FS_CKSUM = `zfs set checksum=off %s`
+	OPTIMIZE_FS_SYNC = `zfs set sync=disabled lpg/lxc/%s`
+	OPTIMIZE_FS_CKSUM = `zfs set checksum=off lpg/lxc/%s`
+	OPTIMIZE_FS_ATIME = `zfs set atime=off lpg/lxc/%s`
 	CLONE_FS = `zfs clone %s lpg/lxc/%s`
 	CLONE_FS_FROM = `zfs list -t snapshot|grep %s@%s|tail -1|awk "{print \$1}"`
 	WGET = `wget -c --retry-connrefused -t 0 %s/%s/%s -O %s/%s/%s`
@@ -132,13 +133,6 @@ func (c *LdlCli) Destroy(name string) map[string]string  {
 
 
 // ## REPOSITORY CLIENT IMPLEMENTATION ## //
-func (c *LdlCli) Mount(src string, dist string) map[string]string {
-	// todo: реализовать это дело
-	// zfs set mountpoint=/var/lib/lxc/%(VM-NAME)s/rootfs/%(DST)s lpg/lxc/%(SRC)s
-	// lxc.mount.entry = /media/data/share share/folder none bind 0.0
-	return c.errorMsg("Not implemented")
-}
-
 func (c *LdlCli) Autostart(name string, value string) map[string]string {
 	if !c.doSaveConfigDirective(name, "lxc.start.auto", value) {
 		return c.errorMsg("Can not update config")
@@ -267,7 +261,51 @@ func (c *LdlCli) Import(dist string) map[string]string {
 	return map[string]string{"status": "ok", "message": "success"}
 }
 
+/*
 func (c *LdlCli) Migrate(name string, ssh string) map[string]string {
+	// todo: move with mounted zfs datasets and with CT base images
+	res := helpers.ExecRes("ssh %s 'mkdir -p /var/lib/lxc/%s/'", ssh, name)
+	if res["status"] != "ok" {
+		return res
+	}
+
+	//all mounted folders
+	//cat /var/lib/lxc/web-3/config|grep lxc.mount.entry|awk '{print $3}'
+
+	//get zfs parent
+	//zfs get origin lpg/lxc/web-3|tail -1|awk '{print $3}'|cut -d'/' -f3
+
+	//get snapshots
+	//zfs list -t snapshot|grep web@snap
+
+	//get base fs
+	//zfs get origin lpg/lxc/web-3|tail -1|awk '{print $3}'|cut -d'@' -f1
+
+	//todo: copy base fs
+	//todo: copy snapshots
+	//todo: copy images (rsync /usr/local/var/lib/ldl/web/)
+
+	res = helpers.ExecRes(MIGRATE_CFG, name, ssh, name)
+	if res["status"] != "ok" {
+		return res
+	}
+
+	res = helpers.ExecRes(MIGRATE_ZFS, name, ssh, name)
+	if res["status"] != "ok" {
+		return res
+	}
+
+	res = helpers.ExecRes(MIGRATE_MP, ssh, name, name)
+	if res["status"] != "ok" {
+		return res
+	}
+	return map[string]string{"status": "ok", "message": "success"}
+}
+*/
+
+func (c *LdlCli) Migrate(name string, ssh string) map[string]string {
+	// todo: rename to MigrateCT
+	// Migrate CT with inside Data
 	res := helpers.ExecRes("ssh %s 'mkdir -p /var/lib/lxc/%s/'", ssh, name)
 	if res["status"] != "ok" {
 		return res
@@ -300,9 +338,45 @@ func (c *LdlCli) Migrate(name string, ssh string) map[string]string {
 	return map[string]string{"status": "ok", "message": "success"}
 }
 
+func (c *LdlCli) Mount(name string, folder string, dst string) map[string]string {
+	res0 := helpers.ExecRes("zfs create lpg/lxc/%s", folder)
+	res1 := helpers.ExecRes(OPTIMIZE_FS_SYNC, folder)
+	res2 := helpers.ExecRes(OPTIMIZE_FS_CKSUM, folder)
+	res3 := helpers.ExecRes(OPTIMIZE_FS_ATIME, folder)
+
+	if res0["status"] != "ok" || res1["status"] != "ok" || res2["status"] != "ok" || res3["status"] != "ok" {
+		return c.errorMsg("Can not create or set fs properties")
+	}
+
+	if dst != "" && strings.HasPrefix(dst, "/") {
+		dst = strings.Replace(dst, "/", "", 1)
+	}
+
+	lxc_dir := fmt.Sprintf("/var/lib/lxc/%s", name)
+	if os.MkdirAll(fmt.Sprintf("%s/rootfs/%s", lxc_dir, dst), 0755) != nil {
+		return c.errorMsg("Can not create mount point")
+	}
+
+	cfg_file := fmt.Sprintf("%s/config", lxc_dir)
+	mount_cfg := fmt.Sprintf("/lpg/lxc/%s %s none bind 0 0", folder, dst)
+	config, _ := ioutil.ReadFile(cfg_file)
+	new_config := string(config)
+	new_config += fmt.Sprintf("\nlxc.mount.entry = %s\n", mount_cfg)
+
+	if ioutil.WriteFile(cfg_file, []byte(new_config), 0644) != nil {
+		return c.errorMsg("Can not update config")
+	}
+
+	return map[string]string{"status": "ok", "message": "success"}
+}
+
+func (c *LdlCli) Unmount(name string, folder string, dst string) map[string]string {
+	// todo: remove 'lxc.mount.entry' with 'dist'
+	return map[string]string{"status": "error", "message": "Not yet"}
+}
+
 func (c *LdlCli) getIP(name string) map[string]string {
-	cmd := fmt.Sprintf("lxc-info -n %s|grep IP|awk '{print $2}'", name)
-	return helpers.ExecRes(cmd)
+	return helpers.ExecRes("lxc-info -n %s|grep IP|awk '{print $2}'", name)
 }
 
 func (c *LdlCli) importFromPath(dist string, path []string) map[string]string {
@@ -394,7 +468,7 @@ func (c *LdlCli) doSaveConfigDirective(name string, group string, value string) 
 	if cfg_found == false && value != "0" {
 		new_config += fmt.Sprintf("%s = %s\n", group, value)
 	}
-	fmt.Println(new_config)
+	//fmt.Println(new_config)
 	if ioutil.WriteFile(config_filename, []byte(new_config), 0644) == nil {
 		return true
 	}
