@@ -90,7 +90,7 @@ func (b Btrfs) ImportImage(path string, dist string, num int) map[string]string 
 }
 
 
-func (b Btrfs) AfterCreate(name string) map[string]string {
+func (b Btrfs) AfterCreate(template string, name string) map[string]string {
 	// not implemented
 	return map[string]string{"status": "ok", "message": "success"}
 }

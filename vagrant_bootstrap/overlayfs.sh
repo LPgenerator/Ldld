@@ -51,7 +51,7 @@ mkdir /root/.go/src/github.com/LPgenerator/
 ln -sf /vagrant /root/.go/src/github.com/LPgenerator/Ldld
 make build BUILD_PLATFORMS="-os=linux -arch=amd64"
 ln -sf /vagrant/out/binaries/ldld-linux-amd64 /usr/local/bin/ldld
-echo "alias ldld='ldld -l debug'" >> ~/.bashrc
+echo "alias ldld='go run /vagrant/main.go -l debug'" >> ~/.bashrc
 
 mkdir /etc/ldld/
 if [ "`hostname`" == "ldl-master" ]; then

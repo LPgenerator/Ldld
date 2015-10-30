@@ -105,7 +105,7 @@ func (z Zfs) ImportImage(path string, dist string, num int) map[string]string {
 }
 
 
-func (z Zfs) AfterCreate(name string) map[string]string {
+func (z Zfs) AfterCreate(template string, name string) map[string]string {
 	// not implemented
 	return map[string]string{"status": "ok", "message": "success"}
 }

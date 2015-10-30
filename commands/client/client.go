@@ -115,7 +115,7 @@ func (c *LdlCli) Create(template string, name string) map[string]string {
 		return c.errorMsg("Can optimze fs")
 	}
 
-	c.backend.AfterCreate(name)
+	c.backend.AfterCreate(template, name)
 
 	// save CT hostname
 	ct_etc := fmt.Sprintf("/var/lib/lxc/%s/rootfs/etc", name)

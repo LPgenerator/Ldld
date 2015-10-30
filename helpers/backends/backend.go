@@ -20,7 +20,7 @@ type Fs interface {
 	Clone(from string, to string) map[string]string
 	SnapshotIsExists(ct string, num int) map[string]string
 	ImportImage(path string, dist string, num int) map[string]string
-	AfterCreate(name string) map[string]string
+	AfterCreate(template string, name string) map[string]string
 }
 
 
