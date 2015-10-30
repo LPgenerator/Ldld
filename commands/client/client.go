@@ -342,45 +342,80 @@ func (c *LdlCli) Migrate(name string, ssh string) map[string]string {
 	return map[string]string{"status": "ok", "message": "success"}
 }
 
-func (c *LdlCli) Mount(name string, folder string, dst string) map[string]string {
-	res0 := helpers.ExecRes("zfs create lxc/%s", folder)
-	res1 := c.backend.Optimize(folder)
-
-	if res0["status"] != "ok" || res1["status"] != "ok" {
-		return c.errorMsg("Can not create or set fs properties")
-	}
-
+func (c *LdlCli) Mount(name string, src string, dst string) map[string]string {
 	if dst != "" && strings.HasPrefix(dst, "/") {
 		dst = strings.Replace(dst, "/", "", 1)
 	}
 
 	lxc_dir := fmt.Sprintf("/var/lib/lxc/%s", name)
-	if os.MkdirAll(fmt.Sprintf("%s/rootfs/%s", lxc_dir, dst), 0755) != nil {
-		return c.errorMsg("Can not create mount point")
+	ovs_delta := fmt.Sprintf("/var/lib/lxc/%s/delta0", name)
+	if helpers.FileExists(ovs_delta) {
+		// overlayfs
+		if os.MkdirAll(fmt.Sprintf("%s/delta0/%s", lxc_dir, dst), 0755) != nil {
+			return c.errorMsg("Can not create mount point")
+		}
+	} else {
+		if os.MkdirAll(fmt.Sprintf("%s/rootfs/%s", lxc_dir, dst), 0755) != nil {
+			return c.errorMsg("Can not create mount point")
+		}
 	}
 
-	cfg_file := fmt.Sprintf("%s/config", lxc_dir)
-	mount_cfg := fmt.Sprintf("/lpg/lxc/%s %s none bind 0 0", folder, dst)
+	cfg_file := fmt.Sprintf("%s/fstab", lxc_dir)
+	mount_cfg := fmt.Sprintf("%s %s none bind 0 0", src, dst)
+
 	config, _ := ioutil.ReadFile(cfg_file)
 	new_config := string(config)
-	new_config += fmt.Sprintf("\nlxc.mount.entry = %s\n", mount_cfg)
+	new_config += fmt.Sprintf("\n%s\n", mount_cfg)
 
 	if ioutil.WriteFile(cfg_file, []byte(new_config), 0644) != nil {
-		return c.errorMsg("Can not update config")
+		return c.errorMsg("Can not update fstab")
 	}
-
 	return map[string]string{"status": "ok", "message": "success"}
 }
 
-func (c *LdlCli) Unmount(name string, folder string, dst string) map[string]string {
-	// todo: remove 'lxc.mount.entry' with 'dist'
-	return map[string]string{"status": "error", "message": "Not yet"}
+func (c *LdlCli) Unmount(name string, src string) map[string]string {
+	cfg_file := fmt.Sprintf("/var/lib/lxc/%s/fstab", name)
+	config, err := ioutil.ReadFile(cfg_file)
+	if err != nil {
+		return c.errorMsg("fstab not found")
+	}
+	new_config := ""
+	for _, line := range strings.Split(string(config), "\n") {
+		if line != "" {
+			line_split := strings.Split(line, " ")
+			if src == line_split[0] || strings.HasPrefix(line_split[0], src) {
+				continue
+			}
+			new_config += line + "\n"
+		}
+	}
+	if ioutil.WriteFile(cfg_file, []byte(new_config), 0644) != nil {
+		return c.errorMsg("Can not update fstab")
+	}
+	return map[string]string{"status": "ok", "message": "success"}
 }
 
 func (c *LdlCli) Fstab(name string) map[string]string {
-	// todo: show lines on /var/lib/lxc/%s/fstab
-	return map[string]string{"status": "error", "message": "Not yet"}
+	cfg_file := fmt.Sprintf("/var/lib/lxc/%s/fstab", name)
+	config, err := ioutil.ReadFile(cfg_file)
+	if err != nil {
+		return c.errorMsg("fstab not found")
+	}
+	data := ""
+	for _, line := range strings.Split(string(config), "\n") {
+		if line != "" {
+			line_split := strings.Split(line, " ")
+			data += fmt.Sprintf("%s -> /%s", line_split[0], line_split[1])
+		}
+	}
+	return map[string]string{"status": "ok", "message": data}
 }
+
+
+/////
+/////
+/////
+
 
 func (c *LdlCli) getIP(name string) map[string]string {
 	return helpers.ExecRes("lxc-info -n %s|grep IP|awk '{print $2}'", name)

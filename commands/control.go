@@ -116,6 +116,7 @@ func (r *RunShell) RunLdlControlCli(c *cli.Context) {
 
 	r.regCmd(cli, c, "mount", "Mount", key, val, c.Args().Get(2))
 	r.regCmd(cli, c, "unmount", "Unmount", key, val)
+	r.regCmd(cli, c, "fstab", "Fstab", key)
 }
 
 func init() {
@@ -161,6 +162,7 @@ func init() {
 		"cgroup": "",
 		"mount": "",
 		"unmount": "",
+		"fstab": "",
 		"autostart": "Autostart after a reboot (0 or 1).",
 		"forward": "Port forwarding (ip will be fixed).",
 		"ip": "Static IP. If value = 'fix', current IP will be fixed.",
