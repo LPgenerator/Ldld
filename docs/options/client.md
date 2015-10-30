@@ -20,8 +20,9 @@
     
     autostart  <ct-name> <value>           Autostart after a reboot (0 or 1).
     forward    <ct-name> <src:dst>         Port forwarding (ip will be fixed).
-    mount      <ct-name> <dir-name> <dst>  Create and mount new zfs dataset to CT.
-    umount     <ct-name> <dir-name>        Unmount zfs dataset from CT (dataset is not deleted).
+    mount      <ct-name> <dir-name> <dst>  Mount host directory to CT.
+    umount     <ct-name> <dir-name>        Unmount directory from CT.
+    fstab      <ct-name>                   Show all mounted folders.
     cgroup     <ct-name> <key> <val>       NO DESCRIPTION
     memory     <ct-name> <value>           Memory limits. Set a maximum RAM (on MB).
     swap       <ct-name> <value>           Swap limits. Set a maximum swap (on MB).

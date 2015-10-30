@@ -13,13 +13,13 @@ type CheckCommand struct {
 }
 
 func (c *CheckCommand) Execute(context *cli.Context) {
-	// todo: check lxc, zfs is installed
+	// todo: check lxc, zfs/btrfs/overlayds is installed
 	// todo: run lxc-checkconfig
-	// todo: check 'lpg/lxc' is exists
-	// todo: rename on all code 'lpg/lxc' to 'ldl/lxc'
+	// todo: check zfs:lpg/lxc || btrfs:/var/lib/lxc is exists
 	// todo: check share dir is exists
 	// todo: check images dir is exists
-	fmt.Println("All is OK")
+	// todo: ... and etc
+	fmt.Println("Not yet!")
 }
 
 func init() {

@@ -343,6 +343,7 @@ func (c *LdlCli) Migrate(name string, ssh string) map[string]string {
 }
 
 func (c *LdlCli) Mount(name string, src string, dst string) map[string]string {
+	// todo: online mount using by: mount -o bind
 	if dst != "" && strings.HasPrefix(dst, "/") {
 		dst = strings.Replace(dst, "/", "", 1)
 	}

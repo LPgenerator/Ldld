@@ -86,6 +86,15 @@ func (r *RunShell) RunLdlControlCli(c *cli.Context) {
 		fmt.Println("Destenation is not defined!")
 		return
 	}
+	if (val == "" || c.Args().Get(2) == "") && c.Command.Name == "mount" {
+		fmt.Println("Src or Dst is not defined!")
+		return
+	}
+	if (val == "" || c.Args().Get(2) == "") && c.Command.Name == "cgroup" {
+		fmt.Println("Key or Rule is not defined!")
+		return
+	}
+
 	cli := client.New(r.config.LdlCliPath, r.config.LdlRepo, r.config.LdlFS)
 	srv := server.New(r.config.LdlSrvPath, r.config.LdlDist, "", r.config.LdlFS)
 
