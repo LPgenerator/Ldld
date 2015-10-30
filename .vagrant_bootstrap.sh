@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cat > /etc/apt/sources.list.bak << END
+cat > /etc/apt/sources.list << END
 deb http://ubuntu.uz/ubuntu/ trusty main restricted
 deb http://ubuntu.uz/ubuntu/ trusty-updates main restricted
 deb http://ubuntu.uz/ubuntu/ trusty universe
@@ -16,10 +16,7 @@ END
 
 apt-get update
 apt-get upgrade
-apt-get install -y python-software-properties software-properties-common
-apt-add-repository -y ppa:zfs-native/stable
-apt-get update
-apt-get install -y lxc ubuntu-zfs nginx golang git
+apt-get install -y lxc nginx golang git
 
 if [ "`hostname`" == "ldl-master" ]; then
     rm /usr/share/nginx/html/*.html
@@ -30,21 +27,12 @@ server {
     server_name _;
 
     location / {
-        if (\$http_user_agent !~ (Go|Wget) ) {
-            return 403;
-        }
-
         autoindex on;
     }
 }
 END
     service nginx restart
 fi
-
-# fs configuration
-modprobe zfs
-zpool create -f lpg /dev/sdb
-zfs create lpg/lxc
 
 export GOPATH="/root/.go"
 export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
@@ -78,6 +66,7 @@ cli-repo-url = "http://48.44.44.44"
 srv-path = "/usr/share/nginx/html"
 cli-data-dir = "/usr/local/var/lib/ldl"
 lxc-distro = "ubuntu"
+lxc-fs = "overlayfs"
 END
 else
     cat > /etc/ldld/config.toml << END
@@ -92,6 +81,7 @@ cli-repo-url = "http://48.44.44.44"
 srv-path = "/usr/share/nginx/html"
 cli-data-dir = "/usr/local/var/lib/ldl"
 lxc-distro = "ubuntu"
+lxc-fs = "overlayfs"
 END
 fi
 

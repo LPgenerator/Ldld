@@ -17,6 +17,7 @@ type LdlCliApi struct{
 	repo        string
 	addr        string
 	dist        string
+	fs          string
 }
 
 var LD struct {
@@ -103,19 +104,20 @@ func HandleCpu(w http.ResponseWriter, r *http.Request) {
 }
 
 
-func New(path string, repo string, addr string, dist string) (*LdlCliApi) {
+func New(path string, repo string, addr string, dist string, fs string) (*LdlCliApi) {
 	strm := &LdlCliApi{
 		path: path,
 		repo: repo,
 		addr: addr,
 		dist: dist,
+		fs:   fs,
 	}
 	return strm
 }
 
 func (c *LdlCliApi) Run(login string, password string) {
-	LD.cli = client.New(c.path, c.repo)
-	LD.srv = server.New(c.path, c.dist, "")
+	LD.cli = client.New(c.path, c.repo, c.fs)
+	LD.srv = server.New(c.path, c.dist, "", c.fs)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", helpers.HandleApiIndex)

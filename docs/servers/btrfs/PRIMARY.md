@@ -4,21 +4,19 @@
 
 * Ubuntu >= 14.04
 * LXC >= 1.0.7
-* ZFS >= 0.6.5
+* BTRFS >= 3.12
 
 
 ### Installation
 
 	apt-get update
 	apt-get upgrade
-	apt-get install -y python-software-properties software-properties-common
-	apt-add-repository -y ppa:zfs-native/stable
-	apt-get update
-	apt-get install -y lxc ubuntu-zfs nginx fail2ban
+	apt-get install -y lxc btrfs-tools nginx fail2ban
+	apt-get clean
 	
 	# nginx configuration
 	rm /usr/share/nginx/html/*.html
-	touch /etc/nginx/sites-enabled/default && cat > /etc/nginx/sites-enabled/default << END
+	cat > /etc/nginx/sites-enabled/default << END
 	server {
 		root /usr/share/nginx/html;
 		listen 80 default_server;
@@ -32,13 +30,15 @@
 		}
 	}
 	END
+
 	service nginx restart
 
 	# fs configuration
-	modprobe zfs
-	zpool create lpg -f /dev/sdb
-	zfs create lpg/lxc
-	apt-get clean
+	modprobe btrfs
+	mkfs.btrfs -f /dev/sdb
+	echo "/dev/sdb /var/lib/lxc btrfs defaults 0 0" >> /etc/fstab
+	mount /var/lib/lxc
+	btrfs subvolume list /var/lib/lxc
 
 
 ### Create CT

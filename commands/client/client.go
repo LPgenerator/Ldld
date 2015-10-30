@@ -10,11 +10,14 @@ import (
 	"io/ioutil"
 
 	"github.com/LPgenerator/Ldld/helpers"
+	"github.com/LPgenerator/Ldld/helpers/backends"
 )
 
 type LdlCli struct{
-	path  string
-	repo  string
+	path      string
+	repo      string
+	fs        string
+	backend   backends.Fs
 }
 
 var CT_TEMPLATE = `
@@ -45,12 +48,6 @@ iface eth0 inet static
 var (
 	PORT_FORWARD = `iptables -t nat -A PREROUTING -p tcp --dport %s -j DNAT --to %s:%s`
 	RM_PORT_FORWARD = `iptables -t nat -L PREROUTING -n -v --line-numbers| grep %s| awk '{print $1}'| xargs iptables -t nat -D PREROUTING`
-	SET_FS_MOUNT_POINT = `zfs set mountpoint=/var/lib/lxc/%s/rootfs lpg/lxc/%s`
-	OPTIMIZE_FS_SYNC = `zfs set sync=disabled lpg/lxc/%s`
-	OPTIMIZE_FS_CKSUM = `zfs set checksum=off lpg/lxc/%s`
-	OPTIMIZE_FS_ATIME = `zfs set atime=off lpg/lxc/%s`
-	CLONE_FS = `zfs clone %s lpg/lxc/%s`
-	CLONE_FS_FROM = `zfs list -t snapshot|grep %s@%s|tail -1|awk "{print \$1}"`
 	WGET = `wget -c --retry-connrefused -t 0 %s/%s/%s -O %s/%s/%s`
 	LinksRegexp = regexp.MustCompile(`">(.*?)/?</a>`)
 	DESTROY_CT = `zfs destroy -rR lpg/lxc/%s >&/dev/null; lxc-destroy -f -n %s`
@@ -61,10 +58,12 @@ var (
 )
 
 
-func New(path string, repo string) (*LdlCli) {
+func New(path string, repo string, fs string) (*LdlCli) {
 	strm := &LdlCli{
-		path: path,
-		repo: repo,
+		path:     path,
+		repo:     repo,
+		fs:       fs,
+		backend:  backends.New(fs),
 	}
 	return strm
 }
@@ -95,23 +94,33 @@ func (c *LdlCli) Create(template string, name string) map[string]string {
 		return c.errorMsg("Can not write config")
 	}
 
-	res := helpers.ExecRes(CLONE_FS_FROM, template, number)
+	res := c.backend.GetSnapshotByTemplate(template, number)
 	if res["status"] != "ok" {
 		return c.errorMsg("Can not get snapshots")
 	}
 
-	res = helpers.ExecRes(CLONE_FS, res["message"], name)
+	res = c.backend.Clone(res["message"], name)
 	if res["status"] != "ok" {
 		return c.errorMsg("Can not clone fs")
 	}
 
-	res = helpers.ExecRes(SET_FS_MOUNT_POINT, name, name)
+	res = c.backend.Mount(name)
 	if res["status"] != "ok" {
 		return c.errorMsg("Can not set mount point")
 	}
 
-	helpers.ExecRes(OPTIMIZE_FS_SYNC, name)
-	helpers.ExecRes(OPTIMIZE_FS_CKSUM, name)
+	res = c.backend.Optimize(name)
+	if res["status"] != "ok" {
+		return c.errorMsg("Can optimze fs")
+	}
+
+	//lxc.rootfs =
+	if c.fs == "overlayfs" {
+		fs := fmt.Sprintf("overlayfs:/var/lib/lxc/%s/rootfs:/var/lib/lxc/%s/delta0", name, name)
+		if !c.doSaveConfigDirective(name, "lxc.rootfs", fs) {
+			return c.errorMsg("Can not update config")
+		}
+	}
 
 	// save CT hostname
 	ct_etc := fmt.Sprintf("/var/lib/lxc/%s/rootfs/etc", name)
@@ -339,12 +348,10 @@ func (c *LdlCli) Migrate(name string, ssh string) map[string]string {
 }
 
 func (c *LdlCli) Mount(name string, folder string, dst string) map[string]string {
-	res0 := helpers.ExecRes("zfs create lpg/lxc/%s", folder)
-	res1 := helpers.ExecRes(OPTIMIZE_FS_SYNC, folder)
-	res2 := helpers.ExecRes(OPTIMIZE_FS_CKSUM, folder)
-	res3 := helpers.ExecRes(OPTIMIZE_FS_ATIME, folder)
+	res0 := helpers.ExecRes("zfs create lxc/%s", folder)
+	res1 := c.backend.Optimize(folder)
 
-	if res0["status"] != "ok" || res1["status"] != "ok" || res2["status"] != "ok" || res3["status"] != "ok" {
+	if res0["status"] != "ok" || res1["status"] != "ok" {
 		return c.errorMsg("Can not create or set fs properties")
 	}
 
@@ -381,17 +388,12 @@ func (c *LdlCli) getIP(name string) map[string]string {
 
 func (c *LdlCli) importFromPath(dist string, path []string) map[string]string {
 	for i, _ := range(path) {
-		chk := helpers.ExecRes(
-			"zfs list -t snapshot|grep lpg/lxc/web@snap%d", i)
-		if chk["status"] == "ok" && chk["message"] != "" {
+		if chk := c.backend.SnapshotIsExists(dist, i); chk["status"] == "ok" && chk["message"] != "" {
 			continue
 		}
 
 		fmt.Println(fmt.Sprintf("> snap%d", i))
-		res := helpers.ExecRes(
-			"cat %s/%s/%d.img | zfs receive lpg/lxc/%s",
-			c.path, dist, i, dist)
-		if res["status"] != "ok" {
+		if res := c.backend.ImportImage(c.path, dist, i); res["status"] != "ok" {
 			return res
 		}
 	}

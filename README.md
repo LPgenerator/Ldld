@@ -56,7 +56,7 @@ This project is designed for the Linux operating system.
 
 * Ubuntu >= 14.04
 * LXC >= 1.0.7
-* ZFS >= 0.6.5
+* ZFS >= 0.6.5 || BtrFS >= 3.13 || OverlayFS >= 3.13
 
 
 ### Installation

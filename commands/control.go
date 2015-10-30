@@ -52,7 +52,7 @@ func (r *RunShell) RunLdlControlSrv(c *cli.Context) {
 		fmt.Println("Destenation is not defined!")
 		return
 	}
-	srv := server.New(r.config.LdlSrvPath, r.config.LdlDist, r.config.LdlCliPath)
+	srv := server.New(r.config.LdlSrvPath, r.config.LdlDist, r.config.LdlCliPath, r.config.LdlFS)
 
 	r.regCmd(srv, c, "create", "Create", key)
 	r.regCmd(srv, c, "start", "Start", key)
@@ -86,8 +86,8 @@ func (r *RunShell) RunLdlControlCli(c *cli.Context) {
 		fmt.Println("Destenation is not defined!")
 		return
 	}
-	cli := client.New(r.config.LdlCliPath, r.config.LdlRepo)
-	srv := server.New(r.config.LdlSrvPath, r.config.LdlDist, "")
+	cli := client.New(r.config.LdlCliPath, r.config.LdlRepo, r.config.LdlFS)
+	srv := server.New(r.config.LdlSrvPath, r.config.LdlDist, "", r.config.LdlFS)
 
 	r.regCmd(cli, c, "create", "Create", val, key)
 	r.regCmd(srv, c, "start", "Start", key)

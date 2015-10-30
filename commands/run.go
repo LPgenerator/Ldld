@@ -26,10 +26,10 @@ type RunCommand struct {
 
 func (mr *RunCommand) Run() {
 	if mr.config.LdlType == "client" {
-		api := cli_api.New(mr.config.LdlCliPath, mr.config.LdlRepo, mr.config.LdlApiAddress, mr.config.LdlDist)
+		api := cli_api.New(mr.config.LdlCliPath, mr.config.LdlRepo, mr.config.LdlApiAddress, mr.config.LdlDist, mr.config.LdlFS)
 		api.Run(mr.config.LdlApiLogin, mr.config.LdlApiPassword)
 	} else {
-		api := srv_api.New(mr.config.LdlSrvPath, mr.config.LdlRepo, mr.config.LdlApiAddress, mr.config.LdlDist)
+		api := srv_api.New(mr.config.LdlSrvPath, mr.config.LdlRepo, mr.config.LdlApiAddress, mr.config.LdlDist, mr.config.LdlFS)
 		api.Run(mr.config.LdlApiLogin, mr.config.LdlApiPassword)
 	}
 }

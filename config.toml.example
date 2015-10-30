@@ -21,3 +21,4 @@
 # cli-repo-url = "repo.example.com"
 # cli-data-dir = "/usr/local/var/lib/ldl"
 # lxc-distro   = "ubuntu"  // ubuntu or debian
+# lxc-fs       = "overlayfs"

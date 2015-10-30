@@ -34,6 +34,7 @@ type BaseConfig struct {
 	LdlSrvPath                      string  `toml:"srv-path"`
 	LdlCliPath                      string  `toml:"cli-data-dir"`
 	LdlDist                         string  `toml:"lxc-distro"`
+	LdlFS                           string  `toml:"lxc-fs"`
 }
 
 func NewConfig() *Config {
@@ -52,6 +53,7 @@ func NewConfig() *Config {
 			LdlRepo: "192.168.0.1",
 			LdlSrvPath: "/usr/share/nginx/html",
 			LdlCliPath: "/usr/local/var/lib/ldl",
+			LdlFS: "overlayfs",
 		},
 	}
 }

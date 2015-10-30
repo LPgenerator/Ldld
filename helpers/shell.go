@@ -37,7 +37,7 @@ func System(command string) bool {
 
 func ExecRes(cmd string, a ...interface{}) map[string]string  {
 	out, err := Execute(fmt.Sprintf(cmd, a...))
-	log.Println(out, err)
+	log.Println("exec", out, err)
 	if err != nil {
 		return map[string]string{
 			"status": "error", "message": out + err.Error()}

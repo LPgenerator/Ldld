@@ -10,14 +10,11 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/LPgenerator/Ldld/helpers"
+	"github.com/LPgenerator/Ldld/helpers/backends"
 )
 
 var (
-	GET_SNAPSHOTS = `zfs list -t snapshot|grep lpg/lxc/%s@snap|awk '{print $1}'| cut -d'@' -f2`//| tac
-	DEL_SNAPSHOTS = `zfs list -t snapshot|grep lpg/lxc/%s@snap|awk '{print $1}'| xargs -I 1 zfs destroy -R 1`
-	DEL_ROOTFS = `zfs destroy -R lpg/lxc/%s`
-
-	CREATE_CT = `lxc-create -B zfs -t %s --zfsroot lpg/lxc -n %s`
+	CREATE_CT = `lxc-create -B %s -t %s -n %s`
 	START_CT = `lxc-start -d -n %s`
 	EXEC_CT = `lxc-attach -n %s -- %s`
 	STOP_CT = `lxc-stop -n %s`
@@ -26,11 +23,7 @@ var (
 	FREEZE_CT = `lxc-freeze -n %s`
 	UNFREEZE_CT = `lxc-unfreeze -n %s`
 	INFO_CT = `lxc-info -n %s`
-	SNAP_CT = `zfs snapshot lpg/lxc/%s@snap%d`
 	RM_CT = `lxc-destroy -f -n %s`
-
-	DUMP_FULL = `zfs send lpg/lxc/%s@snap0 > %s`
-	DUMP_INCR = `zfs send -i lpg/lxc/%s@%s lpg/lxc/%s@%s > %s`
 )
 
 
@@ -38,13 +31,17 @@ type LdlSrv struct{
 	path      string
 	dist      string
 	cli_path  string
+	fs        string
+	backend   backends.Fs
 }
 
-func New(path string, dist string, cli_path string) (*LdlSrv) {
+func New(path string, dist string, cli_path string, fs string) (*LdlSrv) {
 	strm := &LdlSrv{
 		path:     path,
 		dist:     dist,
 		cli_path: cli_path,
+		fs:       fs,
+		backend:  backends.New(fs),
 	}
 	return strm
 }
@@ -61,7 +58,7 @@ func (c *LdlSrv) getSnapNum(name string) int {
 
 // ## LXC IMPLEMENTATION ## //
 func (c *LdlSrv) Create(name string) map[string]string {
-	return helpers.ExecRes(CREATE_CT, c.dist, name)
+	return helpers.ExecRes(CREATE_CT, c.fs, c.dist, name)
 }
 
 func (c *LdlSrv) Start(name string) map[string]string {
@@ -96,13 +93,13 @@ func (c *LdlSrv) Info(name string) map[string]string {
 
 func (c *LdlSrv) Commit(name string) map[string]string {
 	c.Stop(name)
-	result := helpers.ExecRes(SNAP_CT, name, c.getSnapNum(name))
+	result := c.backend.Snapshot(name, c.getSnapNum(name))
 	c.Start(name)
 	return result
 }
 
 func (c *LdlSrv) Log(name string) map[string]string {
-	return helpers.ExecRes(GET_SNAPSHOTS, name)
+	return c.backend.Snapshots(name)
 }
 
 func (c *LdlSrv) Clone(from string, to string) map[string]string {
@@ -114,12 +111,7 @@ func (c *LdlSrv) Clone(from string, to string) map[string]string {
 
 func (c *LdlSrv) Destroy(name string) map[string]string {
 	c.Stop(name)
-	res := helpers.ExecRes(DEL_SNAPSHOTS, name)
-	if res["status"] != "ok" {
-		return res
-	}
-	res = helpers.ExecRes(DEL_ROOTFS, name)
-	if res["status"] != "ok" {
+	if res := c.backend.Destroy(name); res["status"] != "ok" {
 		return res
 	}
 	return helpers.ExecRes(RM_CT, name)
@@ -148,20 +140,20 @@ func (c *LdlSrv) Push(name string) map[string]string {
 	for _, snap_name := range snap_list {
 		snap_num = strings.Replace(snap_name, "snap", "", -1)
 		filename = fmt.Sprintf("%s/%s.img", repo_path, snap_num)
+		//fmt.Println(">", filename)
 		if helpers.FileExists(filename) {
 			snap_prev = snap_name
 			continue
 		}
 
+		fmt.Println(">>>", snap_name)
+
 		if snap_name == "snap0" {
-			dump := helpers.ExecRes(DUMP_FULL, name, filename)
-			if dump["status"] != "ok" {
+			if dump := c.backend.DumpFull(name, filename); dump["status"] != "ok" {
 				return dump
 			}
 		} else {
-			dump := helpers.ExecRes(
-				DUMP_INCR, name, snap_prev, name, snap_name, filename)
-			if dump["status"] != "ok" {
+			if dump := c.backend.DumpIncr(name, snap_prev, name, snap_name, filename); dump["status"] != "ok" {
 				return dump
 			}
 		}

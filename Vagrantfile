@@ -39,8 +39,8 @@ Vagrant.configure("2") do |config|
             vb.customize ["modifyvm", :id, "--ioapic", "on"]
             vb.customize ["modifyvm", :id, "--cpus", APP_CPUS]
 
-            vb.customize ["createhd",  "--filename", "ldl_master_zfs_disk0", "--size", "2048"]
-            vb.customize ["storageattach", :id, "--storagectl", "SATAController", "--port", "1", "--type", "hdd", "--medium", "ldl_master_zfs_disk0.vdi"]
+            # vb.customize ["createhd",  "--filename", "ldl_master_zfs_disk0", "--size", "2048"]
+            # vb.customize ["storageattach", :id, "--storagectl", "SATAController", "--port", "1", "--type", "hdd", "--medium", "ldl_master_zfs_disk0.vdi"]
         end
 
     end
@@ -57,8 +57,8 @@ Vagrant.configure("2") do |config|
             vb.customize ["modifyvm", :id, "--ioapic", "on"]
             vb.customize ["modifyvm", :id, "--cpus", APP_CPUS]
 
-            vb.customize ["createhd",  "--filename", "ldl_slave_zfs_disk0", "--size", "2048"]
-            vb.customize ["storageattach", :id, "--storagectl", "SATAController", "--port", "1", "--type", "hdd", "--medium", "ldl_slave_zfs_disk0.vdi"]
+            # vb.customize ["createhd",  "--filename", "ldl_slave_zfs_disk0", "--size", "2048"]
+            # vb.customize ["storageattach", :id, "--storagectl", "SATAController", "--port", "1", "--type", "hdd", "--medium", "ldl_slave_zfs_disk0.vdi"]
         end
     end
 end

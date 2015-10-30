@@ -16,6 +16,7 @@ type LdlCliSrv struct{
 	repo        string
 	addr        string
 	dist        string
+	fs          string
 }
 
 var LD struct {
@@ -75,19 +76,20 @@ func HandleCommit(w http.ResponseWriter, r *http.Request) {
 	helpers.StandardView(w, r, LD.srv.Commit)
 }
 
-func New(path string, repo string, addr string, dist string) (*LdlCliSrv) {
+func New(path string, repo string, addr string, dist string, fs string) (*LdlCliSrv) {
 	strm := &LdlCliSrv{
 		path: path,
 		repo: repo,
 		addr: addr,
 		dist: dist,
+		fs:   fs,
 	}
 	return strm
 }
 
 func (c *LdlCliSrv) Run(login string, password string) {
-	LD.cli = client.New(c.path, c.repo)
-	LD.srv = server.New(c.path, c.dist, "")
+	LD.cli = client.New(c.path, c.repo, c.fs)
+	LD.srv = server.New(c.path, c.dist, "", c.fs)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", helpers.HandleApiIndex)

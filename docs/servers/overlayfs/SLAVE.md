@@ -1,23 +1,19 @@
-## Installation on Slave server
+## Installation on Slave server (Not implemented)
 
 ### Requirements
 
 * Ubuntu >= 14.04
 * LXC >= 1.0.7
-* ZFS >= 0.6.5
+* OverlayFS >= 3.13-20140303
 
 
 ### Installation
 
-	apt-get update
-	apt-get install -y python-software-properties software-properties-common
-	apt-add-repository ppa:zfs-native/stable
-	apt-get update
-	apt-get install lxc ubuntu-zfs iptables-persistent fail2ban
+	apt-get update && apt-get upgrade -y
+	apt-get install -y lxc iptables-persistent fail2ban
 
-	modprobe zfs
-	zpool create lpg /dev/sdb
-	zfs create lpg/lxc
+	# download image which are you are using for CT
+	lxc-create -t ubuntu -n base
 
 
 ### Download Images
