@@ -24,6 +24,7 @@ var CT_TEMPLATE = `
 lxc.include = /usr/share/lxc/config/ubuntu.common.conf
 
 lxc.rootfs = /var/lib/lxc/%s/rootfs
+lxc.mount = /var/lib/lxc/%s/fstab
 lxc.utsname = %s
 lxc.arch = amd64
 
@@ -88,7 +89,7 @@ func (c *LdlCli) Create(template string, name string) map[string]string {
 	}
 
 	filename := fmt.Sprintf("/var/lib/lxc/%s/config", name)
-	data := fmt.Sprintf(CT_TEMPLATE, name, name)
+	data := fmt.Sprintf(CT_TEMPLATE, name, name, name)
 	err = ioutil.WriteFile(filename, []byte(data), 0644)
 	if err != nil {
 		return c.errorMsg("Can not write config")
