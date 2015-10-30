@@ -6,8 +6,6 @@
 * LXC >= 1.0.7
 * ZFS >= 0.6.5
 
-_Note: use zfs in production only with mirror_
-
 
 ### Installation
 
