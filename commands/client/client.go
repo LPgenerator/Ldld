@@ -377,7 +377,7 @@ func (c *LdlCli) Unmount(name string, folder string, dst string) map[string]stri
 }
 
 func (c *LdlCli) Fstab(name string) map[string]string {
-	// todo: remove 'lxc.mount.entry' with 'dist'
+	// todo: show lines on /var/lib/lxc/%s/fstab
 	return map[string]string{"status": "error", "message": "Not yet"}
 }
 
