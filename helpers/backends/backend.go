@@ -2,8 +2,8 @@ package backends
 
 import (
 	"github.com/LPgenerator/Ldld/helpers/backends/zfs"
-	"github.com/LPgenerator/Ldld/helpers/backends/lvm"
 	"github.com/LPgenerator/Ldld/helpers/backends/btrfs"
+	// "github.com/LPgenerator/Ldld/helpers/backends/lvm"
 	"github.com/LPgenerator/Ldld/helpers/backends/overlayfs"
 )
 
@@ -20,6 +20,7 @@ type Fs interface {
 	Clone(from string, to string) map[string]string
 	SnapshotIsExists(ct string, num int) map[string]string
 	ImportImage(path string, dist string, num int) map[string]string
+	AfterCreate(name string) map[string]string
 }
 
 
@@ -30,11 +31,13 @@ func New(backend string) (Fs) {
 	if backend == "btrfs" {
 		fs = []Fs{btrfs.Btrfs{}}
 	}
-	if backend == "lvm" {
-		fs = []Fs{lvm.Lvm{}}
-	}
 	if backend == "overlayfs" {
 		fs = []Fs{overlayfs.Overlayfs{}}
 	}
+	/*
+	if backend == "lvm" {
+		fs = []Fs{lvm.Lvm{}}
+	}
+	*/
 	return fs[0]
 }

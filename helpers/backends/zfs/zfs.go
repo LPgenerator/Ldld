@@ -103,3 +103,9 @@ func (z Zfs) SnapshotIsExists(ct string, num int) map[string]string {
 func (z Zfs) ImportImage(path string, dist string, num int) map[string]string {
 	return helpers.ExecRes(ZFS_IMPORT, path, dist, num, dist)
 }
+
+
+func (z Zfs) AfterCreate(name string) map[string]string {
+	// not implemented
+	return map[string]string{"status": "ok", "message": "success"}
+}

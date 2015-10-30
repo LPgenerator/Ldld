@@ -88,3 +88,9 @@ func (b Btrfs) ImportImage(path string, dist string, num int) map[string]string 
 	helpers.ExecRes("mkdir -p /var/lib/lxc/%s", dist)
 	return helpers.ExecRes(BTRFS_IMPORT, path, dist, num, dist)
 }
+
+
+func (b Btrfs) AfterCreate(name string) map[string]string {
+	// not implemented
+	return map[string]string{"status": "ok", "message": "success"}
+}

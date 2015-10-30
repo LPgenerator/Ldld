@@ -114,13 +114,7 @@ func (c *LdlCli) Create(template string, name string) map[string]string {
 		return c.errorMsg("Can optimze fs")
 	}
 
-	if c.fs == "overlayfs" {
-		//todo: check latest delta. it can be delta1 or delta2
-		fs := fmt.Sprintf("overlayfs:/var/cache/lxc/trusty/rootfs-amd64:/var/lib/lxc/%s/delta0", name)
-		if !c.doSaveConfigDirective(name, "lxc.rootfs", fs) {
-			return c.errorMsg("Can not update config")
-		}
-	}
+	c.backend.AfterCreate(name)
 
 	// save CT hostname
 	ct_etc := fmt.Sprintf("/var/lib/lxc/%s/rootfs/etc", name)
@@ -143,7 +137,7 @@ func (c *LdlCli) Destroy(name string) map[string]string  {
 
 // ## REPOSITORY CLIENT IMPLEMENTATION ## //
 func (c *LdlCli) Autostart(name string, value string) map[string]string {
-	if !c.doSaveConfigDirective(name, "lxc.start.auto", value) {
+	if !helpers.SaveLXCDirective(name, "lxc.start.auto", value) {
 		return c.errorMsg("Can not update config")
 	}
 	return map[string]string{"status": "ok", "message": "success"}
@@ -162,10 +156,10 @@ func (c *LdlCli) Ip(name string, value string) map[string]string {
 		}
 	}
 	// save to lxc config
-	if !c.doSaveConfigDirective(name, "lxc.network.ipv4", value) {
+	if !helpers.SaveLXCDirective(name, "lxc.network.ipv4", value) {
 		return c.errorMsg("Can not update config")
 	}
-	if !c.doSaveConfigDirective(name, "lxc.network.ipv4.gateway", "auto") {
+	if !helpers.SaveLXCDirective(name, "lxc.network.ipv4.gateway", "auto") {
 		return c.errorMsg("Can not update config")
 	}
 
@@ -443,39 +437,12 @@ func (c *LdlCli) doCGroup(name string, group string, value string) map[string]st
 	if res["status"] != "ok" {
 		return res
 	}
-	if !c.doSaveConfigDirective(name, "lxc.cgroup." + group, value) {
+	if !helpers.SaveLXCDirective(name, "lxc.cgroup." + group, value) {
 		return c.errorMsg("Can not update config")
 	}
 	return res
 }
 
-func (c *LdlCli) doSaveConfigDirective(name string, group string, value string) bool {
-	config_filename := fmt.Sprintf("/var/lib/lxc/%s/config", name)
-	config, err := ioutil.ReadFile(config_filename)
-	if err != nil { return false }
-	new_config := ""
-	cfg_found := false
-	for _, line := range strings.Split(string(config), "\n") {
-		if strings.HasPrefix(line, group + " =") {
-			if value != "0" {
-				new_config += fmt.Sprintf("%s = %s\n", group, value)
-				cfg_found = true
-			}
-		} else {
-			if line != "" {
-				new_config += line + "\n"
-			}
-		}
-	}
-	if cfg_found == false && value != "0" {
-		new_config += fmt.Sprintf("%s = %s\n", group, value)
-	}
-	//fmt.Println(new_config)
-	if ioutil.WriteFile(config_filename, []byte(new_config), 0644) == nil {
-		return true
-	}
-	return false
-}
 
 func (c *LdlCli) convertMbToBytes(value string) string {
 	num, err := strconv.Atoi(value)

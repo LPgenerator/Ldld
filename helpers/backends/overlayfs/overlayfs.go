@@ -1,6 +1,7 @@
 package overlayfs
 
 import (
+	"fmt"
 	"github.com/LPgenerator/Ldld/helpers"
 )
 
@@ -86,4 +87,18 @@ func (b Overlayfs) SnapshotIsExists(ct string, num int) map[string]string {
 
 func (b Overlayfs) ImportImage(path string, dist string, num int) map[string]string {
 	return helpers.ExecRes(OVERLAYFS_IMPORT, path, dist, num)
+}
+
+
+func (b Overlayfs) AfterCreate(name string) map[string]string {
+	//todo: check latest delta. it can be delta1 or delta2
+	//todo: rootfs now is hardcoded. need another way to do this
+	//todo: set hostname & add to /etc/hosts
+	//todo: use signals BeforeCreate and AfterCreate
+
+	fs := fmt.Sprintf("overlayfs:/var/cache/lxc/trusty/rootfs-amd64:/var/lib/lxc/%s/delta0", name)
+	if !helpers.SaveLXCDirective(name, "lxc.rootfs", fs) {
+		return map[string]string{"status": "error", "message": "update config"}
+	}
+	return map[string]string{"status": "ok", "message": "success"}
 }

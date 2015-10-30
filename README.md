@@ -72,6 +72,8 @@ We are support distros based on debian
 * Debian
 * Ubuntu
 
+_Note: For OverlayFS we are support only Ubuntu at this moment_
+
 
 ### License
 
