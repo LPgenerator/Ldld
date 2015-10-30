@@ -376,6 +376,11 @@ func (c *LdlCli) Unmount(name string, folder string, dst string) map[string]stri
 	return map[string]string{"status": "error", "message": "Not yet"}
 }
 
+func (c *LdlCli) Fstab(name string) map[string]string {
+	// todo: remove 'lxc.mount.entry' with 'dist'
+	return map[string]string{"status": "error", "message": "Not yet"}
+}
+
 func (c *LdlCli) getIP(name string) map[string]string {
 	return helpers.ExecRes("lxc-info -n %s|grep IP|awk '{print $2}'", name)
 }

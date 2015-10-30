@@ -29,27 +29,27 @@ type Overlayfs struct {
 //
 // SERVER
 //
-func (b Overlayfs) Snapshot(ct string, num int) map[string]string {
+func (o Overlayfs) Snapshot(ct string, num int) map[string]string {
 	return helpers.ExecRes(OVERLAYFS_SNAPSHOT, ct)
 }
 
 
-func (b Overlayfs) DumpFull(ct string, dst string) map[string]string {
+func (o Overlayfs) DumpFull(ct string, dst string) map[string]string {
 	return helpers.ExecRes(OVERLAYFS_DUMP_FULL, dst, ct)
 }
 
 
-func (b Overlayfs) DumpIncr(ct1 string, prev string, ct2 string, curr string, dst string) map[string]string {
+func (o Overlayfs) DumpIncr(ct1 string, prev string, ct2 string, curr string, dst string) map[string]string {
 	return helpers.ExecRes(OVERLAYFS_DUMP_INCR, dst, ct1, curr)
 }
 
 
-func (b Overlayfs) Snapshots(ct string) map[string]string {
+func (o Overlayfs) Snapshots(ct string) map[string]string {
 	return helpers.ExecRes(OVERLAYFS_GET_SNAPSHOTS, ct)
 }
 
 
-func (b Overlayfs) Destroy(ct string) map[string]string {
+func (o Overlayfs) Destroy(ct string) map[string]string {
 	return helpers.ExecRes(OVERLAYFS_DEL_SNAPSHOTS, ct)
 }
 
@@ -57,40 +57,40 @@ func (b Overlayfs) Destroy(ct string) map[string]string {
 //
 // CLIENT
 //
-func (b Overlayfs) Optimize(ct string) map[string]string {
+func (o Overlayfs) Optimize(ct string) map[string]string {
 	// not implemented
 	return map[string]string{"status": "ok", "message": "success"}
 }
 
 
-func (b Overlayfs) Mount(ct string) map[string]string {
+func (o Overlayfs) Mount(ct string) map[string]string {
 	// todo: not implemented
 	return map[string]string{"status": "ok", "message": "success"}
 }
 
 
-func (b Overlayfs) GetSnapshotByTemplate(template string, number string) map[string]string {
+func (o Overlayfs) GetSnapshotByTemplate(template string, number string) map[string]string {
 	if number == "" { number = "*" }
 	return helpers.ExecRes(OVERLAYFS_CLONE_FS_FROM, template, number)
 }
 
 
-func (b Overlayfs) Clone(from string, to string) map[string]string {
+func (o Overlayfs) Clone(from string, to string) map[string]string {
 	return helpers.ExecRes(OVERLAYFS_CLONE_FS, from, to)
 }
 
 
-func (b Overlayfs) SnapshotIsExists(ct string, num int) map[string]string {
+func (o Overlayfs) SnapshotIsExists(ct string, num int) map[string]string {
 	return helpers.ExecRes(OVERLAYFS_SNAP_EXISTS, ct, num)
 }
 
 
-func (b Overlayfs) ImportImage(path string, dist string, num int) map[string]string {
+func (o Overlayfs) ImportImage(path string, dist string, num int) map[string]string {
 	return helpers.ExecRes(OVERLAYFS_IMPORT, path, dist, num)
 }
 
 
-func (b Overlayfs) AfterCreate(name string) map[string]string {
+func (o Overlayfs) AfterCreate(name string) map[string]string {
 	//todo: check latest delta. it can be delta1 or delta2
 	//todo: rootfs now is hardcoded. need another way to do this
 	//todo: set hostname & add to /etc/hosts
