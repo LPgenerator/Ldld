@@ -13,6 +13,7 @@
 	apt-get upgrade
 	apt-get install -y lxc nginx fail2ban
 	apt-get clean
+	modprobe overlayfs
 	
 	# nginx configuration
 	rm /usr/share/nginx/html/*.html

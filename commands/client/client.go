@@ -114,9 +114,9 @@ func (c *LdlCli) Create(template string, name string) map[string]string {
 		return c.errorMsg("Can optimze fs")
 	}
 
-	//lxc.rootfs =
 	if c.fs == "overlayfs" {
-		fs := fmt.Sprintf("overlayfs:/var/lib/lxc/%s/rootfs:/var/lib/lxc/%s/delta0", name, name)
+		//todo: check latest delta. it can be delta1 or delta2
+		fs := fmt.Sprintf("overlayfs:/var/cache/lxc/trusty/rootfs-amd64:/var/lib/lxc/%s/delta0", name)
 		if !c.doSaveConfigDirective(name, "lxc.rootfs", fs) {
 			return c.errorMsg("Can not update config")
 		}

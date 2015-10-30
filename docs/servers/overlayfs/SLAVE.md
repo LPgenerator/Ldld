@@ -14,6 +14,7 @@
 
 	# download image which are you are using for CT
 	lxc-create -t ubuntu -n base
+	modprobe overlayfs
 
 
 ### Download Images
