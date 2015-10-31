@@ -11,21 +11,8 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/LPgenerator/Ldld/helpers"
 	"github.com/LPgenerator/Ldld/helpers/backends"
+	"github.com/LPgenerator/Ldld/helpers/providers"
 )
-
-var (
-	CREATE_CT = `lxc-create -B %s -t %s -n %s`
-	START_CT = `lxc-start -d -n %s`
-	EXEC_CT = `lxc-attach -n %s -- %s`
-	STOP_CT = `lxc-stop -n %s`
-	LIST_CT = `lxc-ls -f -F name,state,ipv4,ipv6,autostart,pid,memory,ram,swap`
-	CLONE_CT = `lxc-clone -s %s %s`
-	FREEZE_CT = `lxc-freeze -n %s`
-	UNFREEZE_CT = `lxc-unfreeze -n %s`
-	INFO_CT = `lxc-info -n %s`
-	RM_CT = `lxc-destroy -f -n %s`
-)
-
 
 type LdlSrv struct{
 	path      string
@@ -33,6 +20,7 @@ type LdlSrv struct{
 	cli_path  string
 	fs        string
 	backend   backends.Fs
+	provider  providers.Provider
 }
 
 func New(path string, dist string, cli_path string, fs string) (*LdlSrv) {
@@ -42,54 +30,68 @@ func New(path string, dist string, cli_path string, fs string) (*LdlSrv) {
 		cli_path: cli_path,
 		fs:       fs,
 		backend:  backends.New(fs),
+		provider: providers.New("lxc"),
 	}
 	return strm
-}
-
-func (c *LdlSrv) getSnapNum(name string) int {
-	log := c.Log(name)
-	msg := log["message"]
-	if log["status"] == "ok" && msg != "" && msg != "no datasets available" {
-		return len(strings.Split(log["message"], "\n"))
-	}
-	return 0
 }
 
 
 // ## LXC IMPLEMENTATION ## //
 func (c *LdlSrv) Create(name string) map[string]string {
-	return helpers.ExecRes(CREATE_CT, c.fs, c.dist, name)
+	return c.provider.Create(name, c.fs, c.dist)
 }
 
 func (c *LdlSrv) Start(name string) map[string]string {
 	//todo: maybe set static ip by using lxc.network.ipv4 = 10.0.3.211 on cfg
-	return helpers.ExecRes(START_CT, name)
+	return c.provider.Start(name)
 }
 
 func (c *LdlSrv) Stop(name string) map[string]string {
-	return helpers.ExecRes(STOP_CT, name)
+	return c.provider.Stop(name)
 }
 
 func (c *LdlSrv) Attach(name string) {
-	lxc_attach, _ := exec.LookPath("lxc-attach")
-	syscall.Exec(lxc_attach, []string{"lxc-attach", "-n", name}, os.Environ())
+	c.provider.Attach(name)
 }
 
 func (c *LdlSrv) List() map[string]string {
-	return helpers.ExecRes(LIST_CT)
+	return c.provider.List()
 }
 
 func (c *LdlSrv) Freeze(name string) map[string]string {
-	return helpers.ExecRes(FREEZE_CT, name)
+	return c.provider.Freeze(name)
 }
 
 func (c *LdlSrv) Unfreeze(name string) map[string]string {
-	return helpers.ExecRes(UNFREEZE_CT, name)
+	return c.provider.Unfreeze(name)
 }
 
 func (c *LdlSrv) Info(name string) map[string]string {
-	return helpers.ExecRes(INFO_CT, name)
+	return c.provider.Info(name)
 }
+
+func (c *LdlSrv) Clone(from string, to string) map[string]string {
+	c.Stop(from)
+	result := c.provider.Clone(from, to)
+	c.Start(from)
+	return result
+}
+
+func (c *LdlSrv) Destroy(name string) map[string]string {
+	c.Stop(name)
+	if res := c.backend.Destroy(name); res["status"] != "ok" {
+		return res
+	}
+	return c.provider.Destroy(name)
+}
+
+func (c *LdlSrv) Exec(name string, cmd string) map[string]string {
+	return c.provider.Exec(name, cmd)
+}
+
+
+// ## SERVER IMPLEMENTATION ## //
+
 
 func (c *LdlSrv) Commit(name string) map[string]string {
 	c.Stop(name)
@@ -102,27 +104,6 @@ func (c *LdlSrv) Log(name string) map[string]string {
 	return c.backend.Snapshots(name)
 }
 
-func (c *LdlSrv) Clone(from string, to string) map[string]string {
-	c.Stop(from)
-	result := helpers.ExecRes(CLONE_CT, from, to)
-	c.Start(from)
-	return result
-}
-
-func (c *LdlSrv) Destroy(name string) map[string]string {
-	c.Stop(name)
-	if res := c.backend.Destroy(name); res["status"] != "ok" {
-		return res
-	}
-	return helpers.ExecRes(RM_CT, name)
-}
-
-func (c *LdlSrv) Exec(name string, cmd string) map[string]string {
-	return helpers.ExecRes(EXEC_CT, name, cmd)
-}
-
-
-// ## REPOSITORY SERVER IMPLEMENTATION ## //
 func (c *LdlSrv) Push(name string) map[string]string {
 	snapshots := c.Log(name)
 	if snapshots["status"] != "ok" {
@@ -176,4 +157,13 @@ func (c *LdlSrv) Share() {
 	if err != nil {
 		log.Errorf("unable to serve: %s", err)
 	}
+}
+
+func (c *LdlSrv) getSnapNum(name string) int {
+	log := c.Log(name)
+	msg := log["message"]
+	if log["status"] == "ok" && msg != "" && msg != "no datasets available" {
+		return len(strings.Split(log["message"], "\n"))
+	}
+	return 0
 }

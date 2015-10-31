@@ -31,11 +31,11 @@ func LxcListToInterface(list string) interface{} {
 			"name": arr[0],
 			"state": arr[1],
 			"ipv4": arr[2],
-			"ipv6": arr[3],
+			//"ipv6": arr[3],
 			"autostart": arr[4],
 			"pid": arr[5],
 			"memory": arr[6],
-			"ram": arr[7],
+			//"ram": arr[7],
 			"swap": arr[8],
 		})
 	}

@@ -7,6 +7,9 @@
 * ZFS >= 0.6.5
 
 
+If you are worrying about ZFS on Linux stability you should read this [perfect manual from Richard Yao](https://clusterhq.com/blog/state-zfs-on-linux/).
+
+
 ### Installation
 
 	apt-get update
