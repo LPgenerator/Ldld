@@ -115,12 +115,10 @@ func (c *LdlCli) Create(template string, name string) map[string]string {
 		return c.errorMsg("Can optimze fs")
 	}
 
-	c.backend.AfterCreate(template, name)
-
-	// save CT hostname
-	ct_etc := fmt.Sprintf("/var/lib/lxc/%s/rootfs/etc", name)
-	helpers.ExecRes("echo %s > %s/hostname", name, ct_etc)
-	helpers.ExecRes("echo '%s\t127.0.0.1' >> %s/hosts", name, ct_etc)
+	post_create := c.backend.AfterCreate(template, name)
+	if post_create["status"] != "ok" {
+		return post_create
+	}
 
 	return map[string]string{"status": "ok", "message": "success"}
 }

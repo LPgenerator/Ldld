@@ -1,6 +1,9 @@
 package zfs
 
-import "github.com/LPgenerator/Ldld/helpers"
+import (
+	"fmt"
+	"github.com/LPgenerator/Ldld/helpers"
+)
 
 
 var (
@@ -106,6 +109,5 @@ func (z Zfs) ImportImage(path string, dist string, num int) map[string]string {
 
 
 func (z Zfs) AfterCreate(template string, name string) map[string]string {
-	// not implemented
-	return map[string]string{"status": "ok", "message": "success"}
+	return helpers.SaveHostInfo(name, fmt.Sprintf("/var/lib/lxc/%s/rootfs/etc", name))
 }

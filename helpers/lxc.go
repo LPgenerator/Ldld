@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"os"
 	"fmt"
 	"strings"
 	"io/ioutil"
@@ -32,4 +33,21 @@ func SaveLXCDirective(name string, group string, value string) bool {
 		return true
 	}
 	return false
+}
+
+
+func SaveHostInfo(name string, ct_etc string) map[string]string {
+	if !FileExists(ct_etc) && os.MkdirAll(ct_etc, 0755) != nil {
+		return map[string]string{"status": "error", "message": "can not create etc"}
+	}
+
+	if res := ExecRes("echo %s > %s/hostname", name, ct_etc); res["status"] != "ok" {
+		return map[string]string{"status": "error", "message": "can not save hostname"}
+	}
+
+	if res := ExecRes("echo '127.0.0.1\t%s' >> %s/hosts", name, ct_etc); res["status"] != "ok" {
+		return map[string]string{"status": "error", "message": "can not save hosts"}
+	}
+
+	return map[string]string{"status": "ok", "message": "success"}
 }

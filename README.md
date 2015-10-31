@@ -70,12 +70,10 @@ Lvm2 is not completed and wait help from community.
 
 ### Support CT templates
 
-We are support distros based on debian 
+We are support distros based on Debian 
 
 * Debian
 * Ubuntu
-
-_Note: For OverlayFS we are support only Ubuntu at this moment_
 
 
 ### License
