@@ -20,14 +20,10 @@ RPM_ARCHS ?= x86_64 i686 arm armhf
 
 all: deps test lint toolchain build
 
-dev-deploy:
-	rm out/binaries/ldl* || true
-	make build BUILD_PLATFORMS="-os=linux -arch=amd64"
-	tar czf ldld.tar.gz out/binaries/ldld-linux-amd64
-	ssh root@31.184.198.71 'rm ldld*'
-	rsync -aP ldld.tar.gz root@31.184.198.71:~/
-	rm ldld.tar.gz
-	ssh root@31.184.198.71 'tar xzf ldld.tar.gz; mv out/binaries/ldld-linux-amd64 .'
+deploy:
+	@rsync -auv out/deb/ldld_amd64.deb root@10.10.10.105:/tmp/$(PACKAGE_NAME)_$(PACKAGE_ARCH)-$(VERSION).deb
+	@ssh root@10.10.10.105 "aptly repo add lpg /tmp/$(PACKAGE_NAME)_$(PACKAGE_ARCH)-$(VERSION).deb"
+	@ssh root@10.10.10.105 "aptly publish update lpg"
 
 run:
 	dogo

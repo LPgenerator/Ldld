@@ -39,8 +39,12 @@ fi
 
 # fs configuration
 modprobe zfs
-zpool create -f lpg /dev/sdb
-zfs create lpg/lxc
+zpool create -f ldld /dev/sdb
+zfs create ldld/lxc
+cat > /etc/lxc/lxc.conf << END
+lxc.lxcpath = /var/lib/lxc
+lxc.bdev.zfs.root = ldld/lxc
+END
 
 export GOPATH="/root/.go"
 export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
@@ -74,6 +78,7 @@ cli-repo-url = "http://48.44.44.44"
 srv-path = "/usr/share/nginx/html"
 cli-data-dir = "/usr/local/var/lib/ldl"
 lxc-distro = "ubuntu"
+lxc-fs = "zfs"
 END
 else
     cat > /etc/ldld/config.toml << END
@@ -88,6 +93,7 @@ cli-repo-url = "http://48.44.44.44"
 srv-path = "/usr/share/nginx/html"
 cli-data-dir = "/usr/local/var/lib/ldl"
 lxc-distro = "ubuntu"
+lxc-fs = "zfs"
 END
 fi
 

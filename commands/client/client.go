@@ -27,10 +27,6 @@ lxc.rootfs = /var/lib/lxc/%s/rootfs
 lxc.mount = /var/lib/lxc/%s/fstab
 lxc.utsname = %s
 lxc.arch = amd64
-
-lxc.network.type = veth
-lxc.network.flags = up
-lxc.network.link = lxcbr0
 `
 
 var CT_IFCONFIG = `
@@ -88,11 +84,29 @@ func (c *LdlCli) Create(template string, name string) map[string]string {
 		return c.errorMsg("Can not create directory")
 	}
 
+	default_config, err := ioutil.ReadFile("/etc/lxc/default.conf")
+	ct_template := ""
+	if err != nil {
+		ct_template = CT_TEMPLATE + `
+lxc.network.type = veth
+lxc.network.flags = up
+lxc.network.link = lxcbr0
+		`
+	} else {
+		df_cfg := helpers.GetDefaultConfig(string(default_config))
+		ct_template = CT_TEMPLATE + df_cfg
+	}
+
 	filename := fmt.Sprintf("/var/lib/lxc/%s/config", name)
-	data := fmt.Sprintf(CT_TEMPLATE, name, name, name)
+	data := fmt.Sprintf(ct_template, name, name, name)
 	err = ioutil.WriteFile(filename, []byte(data), 0644)
 	if err != nil {
 		return c.errorMsg("Can not write config")
+	}
+
+	cfg_file := fmt.Sprintf("/var/lib/lxc/%s/fstab", name)
+	if ioutil.WriteFile(cfg_file, []byte(""), 0644) != nil {
+		return c.errorMsg("Can create fstab file")
 	}
 
 	res := c.backend.GetSnapshotByTemplate(template, number)

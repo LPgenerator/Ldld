@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"io/ioutil"
+	"crypto/rand"
 )
 
 
@@ -50,4 +51,41 @@ func SaveHostInfo(name string, ct_etc string) map[string]string {
 	}
 
 	return map[string]string{"status": "ok", "message": "success"}
+}
+
+
+func GenerateMacAddress(mac string) (string, error) {
+	buf := make([]byte, 6)
+	_, err := rand.Read(buf)
+	if err != nil {
+		return "", err
+	}
+	buf[0] |= 2
+	mac_st := strings.Split(mac, ":")
+	new_mac := []string{}
+	for i, part := range mac_st {
+		if part == "xx" {
+			part = fmt.Sprintf("%02x", buf[i])
+		}
+		new_mac = append(new_mac, part)
+	}
+	return strings.Join(new_mac, ":"), nil
+}
+
+
+func GetDefaultConfig(config string) string {
+	lines := strings.Split(config, "\n")
+	new_config := ""
+	for _, line := range(lines) {
+		if strings.HasPrefix(line, "lxc.network.hwaddr") {
+			line_split := strings.Split(line, "=")
+			curr_mac := strings.Trim(line_split[1], " ")
+			new_mac, err := GenerateMacAddress(curr_mac)
+			if err == nil {
+				line = fmt.Sprintf("lxc.network.hwaddr = %s", new_mac)
+			}
+		}
+		new_config += line + "\n"
+	}
+	return new_config
 }
