@@ -4,9 +4,6 @@
 Work with your containers such as git from command line and with HTTP REST Api.
 
 
-[![Build Status](http://ci.lpgenerator.ru/projects/7/status.png?ref=master)](http://ci.lpgenerator.ru/projects/7?ref=master)
-
-
 ### Demo
 
     # Clone and up VM's
@@ -56,10 +53,10 @@ This project is designed for the Linux operating system.
 
 * Ubuntu >= 14.04
 * LXC >= 1.0.7
-* ZFS >= 0.6.5 || BtrFS >= 3.13 || OverlayFS >= 3.13
+* ZFS >= 0.6.5 || BtrFS >= 3.13
 
-Originally designed for ZFS and BtrFS. OverlayFS is experimental. 
-Lvm2 is not completed and wait help from community.
+Originally designed for ZFS and BtrFS. 
+Lvm2 and OverlayFS is not fully completed and wait help from community.
 
 
 ### Installation
