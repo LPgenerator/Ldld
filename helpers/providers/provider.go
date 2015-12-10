@@ -2,6 +2,7 @@ package providers
 
 import (
 	"github.com/LPgenerator/Ldld/helpers/providers/lxc"
+	"github.com/LPgenerator/Ldld/helpers/providers/ovz"
 )
 
 
