@@ -17,9 +17,9 @@ var (
 
 	// Client commands
 	LVM_CLONE_FS_FROM = `lvs vg0| grep %s-snap| awk '{print $1}' |sort -t p -k 2 -g | grep -P 'snap%s$'`
-	LVM_CLONE_FS = `?`
+	LVM_CLONE_FS = `?` // how to clone without new fs size
 	LVM_SNAP_EXISTS = `lvs vg0| grep %s-snap%d`
-	LVM_IMPORT = `cat %s/%s/%d.img | gunzip > /dev/vg0/%s-%s`
+	LVM_IMPORT = `cat %s/%s/%d.img | gunzip > /dev/vg0/%s-%s` // create lv at first with unknown fs size
 )
 
 

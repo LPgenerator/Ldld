@@ -8,6 +8,9 @@ import (
 	"github.com/LPgenerator/Ldld/helpers"
 )
 
+
+// todo: create template, exec, clone and etc ...
+
 type Ovz struct {
 }
 

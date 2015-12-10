@@ -1,8 +1,10 @@
 package btrfs
 
 import (
+	"fmt"
 	"github.com/LPgenerator/Ldld/helpers"
 )
+
 
 
 var (
@@ -91,6 +93,5 @@ func (b Btrfs) ImportImage(path string, dist string, num int) map[string]string 
 
 
 func (b Btrfs) AfterCreate(template string, name string) map[string]string {
-	// not implemented
-	return map[string]string{"status": "ok", "message": "success"}
+	return helpers.SaveHostInfo(name, fmt.Sprintf("/var/lib/lxc/%s/rootfs/etc", name))
 }

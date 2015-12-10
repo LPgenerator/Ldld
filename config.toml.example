@@ -6,19 +6,11 @@
 # api-password = "7eNQ4iWLgDw4Q6w"
 #
 #
-# WEB
-#
-# Defaults:
-# web-address  = "127.0.0.1:9191"
-# web-login    = "admin"
-# web-password = "7eNQ4iWLgDw4Q6w"
-#
-#
 # Defaults
 #
 # type         = "client"  // client or server
 # srv-path     = "/usr/share/nginx/html"
-# cli-repo-url = "repo.example.com"
+# cli-repo-url = "http://repo.example.com"
 # cli-data-dir = "/usr/local/var/lib/ldl"
 # lxc-distro   = "ubuntu"  // ubuntu or debian
-# lxc-fs       = "overlayfs"
+# lxc-fs       = "zfs"

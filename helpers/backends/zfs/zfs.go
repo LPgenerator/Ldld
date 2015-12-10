@@ -1,6 +1,9 @@
 package zfs
 
-import "github.com/LPgenerator/Ldld/helpers"
+import (
+	"fmt"
+	"github.com/LPgenerator/Ldld/helpers"
+)
 
 
 var (
@@ -17,7 +20,7 @@ var (
 	ZFS_OPTIMIZE_FS_CKSUM = `zfs set checksum=off ldld/lxc/%s`
 	ZFS_OPTIMIZE_FS_ATIME = `zfs set atime=off ldld/lxc/%s`
 	ZFS_SET_FS_MOUNT_POINT = `zfs set mountpoint=/var/lib/lxc/%s/rootfs ldld/lxc/%s`
-	ZFS_CLONE_FS_FROM = `zfs list -t snapshot | grep -P '%s@%s$' | tail -1 | awk "{print \$1}"`
+	ZFS_CLONE_FS_FROM = `zfs list -t snapshot | awk "{print \$1}" | grep -P '%s@%s$' | tail -1`
 	ZFS_CLONE_FS = `zfs clone %s ldld/lxc/%s`
 	ZFS_SNAP_EXISTS = `zfs list -t snapshot|grep ldld/lxc/%s@snap%d`
 	ZFS_IMPORT = `cat %s/%s/%d.img | zfs receive ldld/lxc/%s`
@@ -106,6 +109,5 @@ func (z Zfs) ImportImage(path string, dist string, num int) map[string]string {
 
 
 func (z Zfs) AfterCreate(template string, name string) map[string]string {
-	// not implemented
-	return map[string]string{"status": "ok", "message": "success"}
+	return helpers.SaveHostInfo(name, fmt.Sprintf("/var/lib/lxc/%s/rootfs/etc", name))
 }
