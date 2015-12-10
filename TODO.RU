@@ -2,6 +2,7 @@
 * Фиксировать IP адреса с учетом кол-ва интерфейсов
 * Передача аргументов в шаблон (поможет для lvm бекенда в плане указания веса fs | lxc-create --template ubuntu --name c1 --bdev loop -- --release trusty)
 
+* Довести до ума команду Migrate
 * Backends support: lvm/overlayfs
 * Md5sum hashes (on commits, and /Release.json files)
 * Commit: hash/message/date/author

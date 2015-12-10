@@ -55,7 +55,7 @@ This project is designed for the Linux operating system.
 * LXC >= 1.0.7
 * ZFS >= 0.6.5 || BtrFS >= 3.13
 
-Originally designed for ZFS and BtrFS. 
+Originally designed for LXC over ZFS or BtrFS. 
 Lvm2 and OverlayFS is not fully completed and wait help from community.
 
 
