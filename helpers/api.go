@@ -10,7 +10,12 @@ func LxcInfoToInterface(info string) interface{} {
 	if info == "" { return result }
 	for _, line := range strings.Split(info, "\n") {
 		data := strings.Split(line, ":")
-		result[strings.Trim(data[0], " ")] = strings.Trim(data[1], " ")
+		key := strings.Trim(data[0], " ")
+		if val, ok := result[key].(string); ok {
+		    result[key] = val + ", " + strings.Trim(data[1], " ")
+		} else {
+			result[key] = strings.Trim(data[1], " ")
+		}
 	}
 	return result
 }

@@ -48,7 +48,6 @@ var (
 	WGET = `wget -c --retry-connrefused -t 0 %s/%s/%s -O %s/%s/%s`
 	LinksRegexp = regexp.MustCompile(`">(.*?)/?</a>`)
 	DESTROY_CT = `zfs destroy -rR lpg/lxc/%s >&/dev/null; lxc-destroy -f -n %s`
-	EMPTY_CMD = ``
 	MIGRATE_CFG = `scp /var/lib/lxc/%s/config %s:/var/lib/lxc/%s/`
 	MIGRATE_ZFS = `zfs send lpg/lxc/%s@migrate | ssh %s zfs recv -F lpg/lxc/%s`
 	MIGRATE_MP = `ssh %s zfs set mountpoint=/var/lib/lxc/%s/rootfs lpg/lxc/%s`
