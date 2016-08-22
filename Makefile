@@ -9,7 +9,7 @@ LAST_TAG := $(shell git describe --tags --abbrev=0)
 COMGPLv3S := $(shell echo `git log --oneline $(LAST_TAG)..HEAD | wc -l`)
 VERSION := $(shell (cat VERSION || echo dev) | sed -e 's/^v//g')
 ifneq ($(RELEASE),true)
-    VERSION := $(shell echo $(VERSION)~beta.$(COMGPLv3S).g$(REVISION))
+    VERSION := $(shell echo $(VERSION).$(COMGPLv3S).g$(REVISION))
 endif
 ITTERATION := $(shell date +%s)
 BUILD_PLATFORMS ?= -os="linux"
@@ -62,7 +62,7 @@ toolchain:
 
 build:
 	gox $(BUILD_PLATFORMS) \
-		-ldflags "-X main.NAME $(PACKAGE_NAME) -X main.VERSION $(VERSION) -X main.REVISION $(REVISION)" \
+		-ldflags "-X main.NAME=$(PACKAGE_NAME) -X main.VERSION=$(VERSION) -X main.REVISION=$(REVISION)" \
 		-output="out/binaries/$(NAME)-{{.OS}}-{{.Arch}}"
 
 lint:
