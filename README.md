@@ -1,6 +1,6 @@
 ## Ldld
 
-`Ldld` is a simple and open source tool for shipping and running distributed containers based on lxc. 
+`Ldld` is a simple and open source tool for shipping and running distributed containers based on LXC. 
 Work with your containers such as git from command line and with HTTP REST Api.
 
 
@@ -26,16 +26,16 @@ Work with your containers such as git from command line and with HTTP REST Api.
     vagrant ssh slave
     sudo -i
     ldld images                                 # show all available images on repo
-    ldld pull web                               # download web image
-    ldld log web                                # show commits for web
-    ldld create web-1 web                       # create new CT from latest web version
-    ldld create web-2 web                       # create new CT from latest web version
-    ldld create web-3 web:0                     # create CT from first commit on web 
+    ldld pull web                               # download web images
+    ldld log web                                # show all commits for web
+    ldld create web-1 web                       # create new CT-1 instance from latest web version
+    ldld create web-2 web                       # create new CT-2 instance from latest web version
+    ldld create web-3 web:0                     # create new CT-2 instance from first commit 
     ldld start web-1                            # start web-1
     ldld start web-3                            # start web-3
     ldld list                                   # show all CT's 
-    ldld exec web-1 'ls hello.txt'              # check file exists
-    ldld exec web-3 'ls hello.txt'              # file is not found on first commit
+    ldld exec web-1 'ls hello.txt'              # check file is exists on web-1 on latest version
+    ldld exec web-3 'ls hello.txt'              # file not found on first commit
     
 
 ### Contributing
@@ -71,6 +71,7 @@ We are support distros based on Debian
 
 * Debian
 * Ubuntu
+
 
 
 ### License
