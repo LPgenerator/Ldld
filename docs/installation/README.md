@@ -5,9 +5,9 @@
 Simply download one of the binaries for your system:
 
 ```bash
-wget -O /usr/local/bin/ldld https://github.com/LPgenerator/Ldld/releases/download/v1.0/ldld-linux-386
-wget -O /usr/local/bin/ldld https://github.com/LPgenerator/Ldld/releases/download/v1.0/ldld-linux-amd64
-wget -O /usr/local/bin/ldld https://github.com/LPgenerator/Ldld/releases/download/v1.0/ldld-linux-arm
+wget -O /usr/local/bin/ldld https://github.com/LPgenerator/Ldld/releases/download/1.27.0/ldld-linux-amd64
+wget -O /usr/local/bin/ldld https://github.com/LPgenerator/Ldld/releases/download/1.27.0/ldld-linux-386
+wget -O /usr/local/bin/ldld https://github.com/LPgenerator/Ldld/releases/download/1.27.0/ldld-linux-arm
 ```
 
 Give it permissions to execute:
@@ -39,9 +39,9 @@ sudo ldld stop
 Download the binary to replace LB's executable:
 
 ```bash
-wget -O /usr/local/bin/ldld https://github.com/LPgenerator/Ldld/releases/download/v1.0/ldld-linux-386
-wget -O /usr/local/bin/ldld https://github.com/LPgenerator/Ldld/releases/download/v1.0/ldld-linux-amd64
-wget -O /usr/local/bin/ldld https://github.com/LPgenerator/Ldld/releases/download/v1.0/ldld-linux-arm
+wget -O /usr/local/bin/ldld https://github.com/LPgenerator/Ldld/releases/download/1.28.0/ldld-linux-amd64
+wget -O /usr/local/bin/ldld https://github.com/LPgenerator/Ldld/releases/download/1.28.0/ldld-linux-386
+wget -O /usr/local/bin/ldld https://github.com/LPgenerator/Ldld/releases/download/1.28.0/ldld-linux-arm
 ```
 
 Give it permissions to execute:
