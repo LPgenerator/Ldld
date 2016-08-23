@@ -212,7 +212,19 @@ func (c *LdlCli) Forward(name string, value string) map[string]string {
 }
 
 func (c *LdlCli) Memory(name string, value string) map[string]string {
-	return c.doCGroup(name, "memory.limit_in_bytes", c.convertMbToBytes(value))
+	val := strings.Split(value, ":")
+	limit := "soft"
+	if len(val) > 1 {
+		value = val[0]
+		limit = val[1]
+	}
+	helpers.SaveLXCDirective(name, "lxc.cgroup.memory.soft_limit_in_bytes", "0")
+	helpers.SaveLXCDirective(name, "lxc.cgroup.memory.limit_in_bytes", "0")
+	size := c.convertMbToBytes(value)
+	if limit == "soft" {
+		return c.doCGroup(name, "memory.soft_limit_in_bytes", size)
+	}
+	return c.doCGroup(name, "memory.limit_in_bytes", size)
 }
 
 func (c *LdlCli) Swap(name string, value string) map[string]string {
