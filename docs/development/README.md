@@ -10,24 +10,26 @@ source ~/.gvm/scripts/gvm
 gvm install go1.4.3
 gvm use go1.4.3
 export GOROOT_BOOTSTRAP=$GOROOT
-gvm install go1.5.1
-gvm use go1.5.1
+gvm install go1.7
+gvm use go1.7
 gvm pkgset create ldld
 gvm pkgset use ldld
 ```
 
 ## 2. Download Ldld sources
 
-```
-go get github.com/LPgenerator/Ldld
-cd ~/.gvm/pkgsets/go1.5.1/ldld/src/github.com/LPgenerator/Ldld
+```bash
+git clone https://github.com/LPgenerator/Ldld.git
+mkdir -p ~/.gvm/pkgsets/go1.7/ldld/src/github.com/LPgenerator/
+ln -sf `pwd` ~/.gvm/pkgsets/go1.7/ldld/src/github.com/LPgenerator/Ldld
+cd ~/.gvm/pkgsets/go1.7/ldld/src/github.com/LPgenerator/Ldld
 ```
 
 ## 3. Install Ldld dependencies
 
 This will download and restore all dependencies required to build `Ldld`:
 
-```
+```bash
 make deps
 ```
 
@@ -35,19 +37,19 @@ make deps
 
 Normally you would use `Ldld`, in order to compile and run Go source use go toolchain:
 
-```
+```bash
 go run main.go run
 ```
 
 You can run `Ldld` in debug-mode:
 
-```
-go run --debug main.go run
+```bash
+go run main.go --debug run
 ```
 
 ## 5. Compile and install Ldld binary
 
-```
+```bash
 go build
 go install
 ```
