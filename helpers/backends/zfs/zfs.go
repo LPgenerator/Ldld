@@ -8,7 +8,7 @@ import (
 
 var (
 	// Server commands
-	ZFS_DEL_ROOTFS = `zfs destroy -R ldld/lxc/%s`
+	// ZFS_DEL_ROOTFS = `zfs destroy -R ldld/lxc/%s`
 	ZFS_SNAPSHOT = `zfs snapshot ldld/lxc/%s@snap%d`
 	ZFS_DUMP_FULL = `zfs send ldld/lxc/%s@snap0 > %s`
 	ZFS_DUMP_INCR = `zfs send -i ldld/lxc/%s@%s ldld/lxc/%s@%s > %s`
@@ -58,9 +58,9 @@ func (z Zfs) Destroy(ct string) map[string]string {
 	if res := helpers.ExecRes(ZFS_DEL_SNAPSHOTS, ct); res["status"] != "ok" {
 		return res
 	}
-	if res := helpers.ExecRes(ZFS_DEL_ROOTFS, ct); res["status"] != "ok" {
-		return res
-	}
+	//if res := helpers.ExecRes(ZFS_DEL_ROOTFS, ct); res["status"] != "ok" {
+	//	return res
+	//}
 	return map[string]string{"status": "ok", "message": "success"}
 }
 

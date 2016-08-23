@@ -3,8 +3,6 @@ package backends
 import (
 	"github.com/LPgenerator/Ldld/helpers/backends/zfs"
 	"github.com/LPgenerator/Ldld/helpers/backends/btrfs"
-	//"github.com/LPgenerator/Ldld/helpers/backends/overlayfs"
-	//"github.com/LPgenerator/Ldld/helpers/backends/lvm"
 )
 
 
@@ -29,13 +27,5 @@ func New(backend string) (Fs) {
 	if backend == "btrfs" {
 		fs = []Fs{btrfs.Btrfs{}}
 	}
-	/*
-	if backend == "overlayfs" {
-		fs = []Fs{overlayfs.Overlayfs{}}
-	}
-	if backend == "lvm" {
-		fs = []Fs{lvm.Lvm{}}
-	}
-	*/
 	return fs[0]
 }

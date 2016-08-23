@@ -18,7 +18,7 @@ var (
 	START_CT = `lxc-start -d -n %s`
 	EXEC_CT = `lxc-attach -n %s -- %s`
 	STOP_CT = `lxc-stop -n %s`
-	LIST_CT = `lxc-ls -f -F name,state,ipv4,ipv6,autostart,pid,memory,ram,swap`
+	LIST_CT = `lxc-ls -f -F name,state,ipv4,ipv6,autostart,pid,ram,swap`
 	CLONE_CT = `lxc-clone -s %s %s`
 	FREEZE_CT = `lxc-freeze -n %s`
 	UNFREEZE_CT = `lxc-unfreeze -n %s`

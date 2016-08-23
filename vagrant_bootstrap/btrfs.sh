@@ -1,24 +1,10 @@
 #!/usr/bin/env bash
 
-cat > /etc/apt/sources.list << END
-deb http://ubuntu.uz/ubuntu/ trusty main restricted
-deb http://ubuntu.uz/ubuntu/ trusty-updates main restricted
-deb http://ubuntu.uz/ubuntu/ trusty universe
-deb http://ubuntu.uz/ubuntu/ trusty-updates universe
-deb http://ubuntu.uz/ubuntu/ trusty multiverse
-deb http://ubuntu.uz/ubuntu/ trusty-updates multiverse
-deb http://ubuntu.uz/ubuntu/ trusty-backports main restricted universe multiverse
-deb http://ubuntu.uz/ubuntu/ trusty-security main restricted
-deb http://ubuntu.uz/ubuntu/ trusty-security universe
-deb http://ubuntu.uz/ubuntu/ trusty-security multiverse
-
-END
-
 apt-get update
-apt-get upgrade
-apt-get install -y lxc btrfs-tools nginx golang git
+apt-get install -y lxc btrfs-tools golang git
 
 if [ "`hostname`" == "ldl-master" ]; then
+    apt-get install -y nginx
     rm /usr/share/nginx/html/*.html
     cat > /etc/nginx/sites-enabled/default << END
 server {
@@ -36,7 +22,7 @@ fi
 
 # fs configuration
 modprobe btrfs
-mkfs.btrfs -f /dev/sdb
+mkfs.btrfs -f /dev/sdc || mkfs.btrfs -f /dev/sdb
 echo "/dev/sdb /var/lib/lxc btrfs defaults 0 0" >> /etc/fstab
 mount /var/lib/lxc
 
@@ -88,6 +74,3 @@ cli-data-dir = "/usr/local/var/lib/ldl"
 lxc-distro = "ubuntu"
 END
 fi
-
-# MIRROR="http://ubuntu.uz/ubuntu" SECURITY_MIRROR="http://ubuntu.uz/ubuntu" lxc-create -t ubuntu -n test-1 -B zfs --zfsroot lpg/lxc
-# lxc-destroy -f -n test-1

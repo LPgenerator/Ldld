@@ -4,7 +4,7 @@
 Api 
 
     export API='curl -X POST --user ldl:7eNQ4iWLgDw4Q6w -H "Accept: application/json" -s -i'
-    export API_HOST="http://127.0.0.1:9090"
+    export API_HOST="http://48.44.44.44:9090"
 
 
 ### Management
@@ -22,7 +22,6 @@ Commit image
 Push image
 
     $API -d 'name=web' $API_HOST/push
-
 
 
 ### CT
@@ -59,7 +58,7 @@ Clone all CT
 
 Destroy CT
 
-    $API -d 'name=web' $API_HOST/destroy
+    $API -d 'name=cron' $API_HOST/destroy
 
 
 Freeze CT

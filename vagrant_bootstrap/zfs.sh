@@ -1,28 +1,11 @@
 #!/usr/bin/env bash
 
-cat > /etc/apt/sources.list << END
-deb http://ubuntu.uz/ubuntu/ trusty main restricted
-deb http://ubuntu.uz/ubuntu/ trusty-updates main restricted
-deb http://ubuntu.uz/ubuntu/ trusty universe
-deb http://ubuntu.uz/ubuntu/ trusty-updates universe
-deb http://ubuntu.uz/ubuntu/ trusty multiverse
-deb http://ubuntu.uz/ubuntu/ trusty-updates multiverse
-deb http://ubuntu.uz/ubuntu/ trusty-backports main restricted universe multiverse
-deb http://ubuntu.uz/ubuntu/ trusty-security main restricted
-deb http://ubuntu.uz/ubuntu/ trusty-security universe
-deb http://ubuntu.uz/ubuntu/ trusty-security multiverse
-
-END
-
 apt-get update
-apt-get upgrade
-apt-get install -y python-software-properties software-properties-common
-apt-add-repository -y ppa:zfs-native/stable
-apt-get update
-apt-get install -y lxc ubuntu-zfs nginx golang git
+apt-get install -y lxc-common lxctl zfsutils-linux golang git
 
 if [ "`hostname`" == "ldl-master" ]; then
-    rm /usr/share/nginx/html/*.html
+    apt-get install -y nginx
+    rm /usr/share/nginx/html/*.html >&/dev/null
     cat > /etc/nginx/sites-enabled/default << END
 server {
     root /usr/share/nginx/html;
@@ -39,7 +22,7 @@ fi
 
 # fs configuration
 modprobe zfs
-zpool create -f ldld /dev/sdb
+zpool create -f ldld /dev/sdc || zpool create -f ldld /dev/sdb
 zfs create ldld/lxc
 cat > /etc/lxc/lxc.conf << END
 lxc.lxcpath = /var/lib/lxc
@@ -97,5 +80,5 @@ lxc-fs = "zfs"
 END
 fi
 
-# MIRROR="http://ubuntu.uz/ubuntu" SECURITY_MIRROR="http://ubuntu.uz/ubuntu" lxc-create -t ubuntu -n test-1 -B zfs --zfsroot lpg/lxc
-# lxc-destroy -f -n test-1
+ldld service-install -u root
+ldld service-start

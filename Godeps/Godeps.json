@@ -35,6 +35,10 @@
 		{
 			"ImportPath": "github.com/mailgun/oxy",
 			"Rev": "547c334d658398c05b346c0b79d8f47ba2e1473b"
+		},
+		{
+			"ImportPath": "github.com/kardianos/osext",
+			"Rev": "c2c54e542fb797ad986b31721e1baedf214ca413"
 		}
 	]
 }

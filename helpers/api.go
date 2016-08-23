@@ -25,8 +25,8 @@ func LxcListToInterface(list string) interface{} {
 	if list == "" { return result }
 	for i, line := range strings.Split(list, "\n") {
 		var arr []string
-		for _, d := range strings.Split(line, "  ") {
-			d = strings.Trim(d, " ")
+		for _, d := range strings.Split(line, " ") {
+			d = strings.TrimSpace(d)
 			if d != "" {
 				arr = append(arr, d)
 			}
@@ -39,20 +39,14 @@ func LxcListToInterface(list string) interface{} {
 			"ipv6": arr[3],
 			"autostart": arr[4],
 			"pid": arr[5],
-			"memory": arr[6],
-			"ram": arr[7],
-			"swap": arr[8],
+			"ram": arr[6],
+			"swap": arr[7],
 		})
 	}
 	return result
 }
 
 func LxcOutToList(list string) interface{} {
-	if list == "" { return []interface{}{} }
-	return strings.Split(list, "\n")
-}
-
-func ImagesToInterface(list string) interface{} {
 	if list == "" { return []interface{}{} }
 	return strings.Split(list, "\n")
 }

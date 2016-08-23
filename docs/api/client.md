@@ -3,7 +3,7 @@
 Api 
 
     export API='curl -X POST --user ldl:7eNQ4iWLgDw4Q6w -H "Accept: application/json" -s -i'
-    export API_HOST="http://127.0.0.1:9090"
+    export API_HOST="http://49.44.44.44:9090"
 
 
 ### Management

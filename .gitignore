@@ -10,3 +10,5 @@ TODO
 *.vdi
 vagrant
 *.tar.gz
+local.repo.sh
+_unsuported
