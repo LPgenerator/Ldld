@@ -105,3 +105,8 @@ CPU limits
 Processes limits
 
     $API -d 'name=web-1&value=32' $API_HOST/processes
+
+
+Network limits
+
+    $API -d 'name=web-1&value=veth2P6NB7 5' $API_HOST/network

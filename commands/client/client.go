@@ -240,9 +240,14 @@ func (c *LdlCli) Processes(name string, value string) map[string]string {
 	return c.doCGroup(name, "pids.max", value)
 }
 
+func (c *LdlCli) Networking(name string, value string) map[string]string {
+	return c.doCGroup(name, "net_prio.ifpriomap", value)
+}
+
 func (c *LdlCli) Cgroup(name string, group string, value string) map[string]string {
 	return c.doCGroup(name, group, value)
 }
+
 
 func (c *LdlCli) Images() map[string]string {
 	data := ""
@@ -502,7 +507,7 @@ func (c *LdlCli) doCGroup(name string, group string, value string) map[string]st
 	if name == "" || group == "" || value == "" {
 		return c.errorMsg("All values must be set!")
 	}
-	res := helpers.ExecRes("lxc-cgroup -n %s %s %s", name, group, value)
+	res := helpers.ExecRes(`lxc-cgroup -n %s %s "%s"`, name, group, value)
 	if res["status"] != "ok" {
 		return res
 	}

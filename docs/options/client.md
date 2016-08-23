@@ -26,6 +26,8 @@
     cgroup     <ct-name> <key> <val>       NO DESCRIPTION
     memory     <ct-name> <value>           Memory limits. Set a maximum RAM (on MB).
     swap       <ct-name> <value>           Swap limits. Set a maximum swap (on MB).
+    network    <ct-name> <value>           Networking limits
+    processes  <ct-name> <value>           Processes limits
     ip         <ct-name> <value>           Static IP. If value = 'fix', current IP will be fixed.
     cpu        <ct-name> <value>           CPU limits based on CPU shares.
     help, h                                Shows a list of commands or help for one command.
