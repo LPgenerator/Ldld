@@ -103,6 +103,10 @@ func HandleCpu(w http.ResponseWriter, r *http.Request) {
 	helpers.DoubleVarView(w, r, "name", "value", LD.cli.Cpu)
 }
 
+func HandleProcesses(w http.ResponseWriter, r *http.Request) {
+	helpers.DoubleVarView(w, r, "name", "value", LD.cli.Processes)
+}
+
 
 func New(path string, repo string, addr string, dist string, fs string) (*LdlCliApi) {
 	strm := &LdlCliApi{
@@ -140,6 +144,7 @@ func (c *LdlCliApi) Run(login string, password string) {
 	mux.HandleFunc("/swap", HandleSwap)
 	mux.HandleFunc("/ip", HandleIp)
 	mux.HandleFunc("/cpu", HandleCpu)
+	mux.HandleFunc("/processes", HandleProcesses)
 
 	n := negroni.New()
 	n.Use(helpers.LogMiddleware())

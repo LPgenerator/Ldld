@@ -16,7 +16,6 @@ import (
 
 const (
 	defaultServiceName = "ldld"
-	defaultDisplayName = "Ldld is a simple and open source tool for shipping and running distributed containers."
 	defaultDescription = "Ldld is a simple and open source tool for shipping and running distributed containers."
 )
 

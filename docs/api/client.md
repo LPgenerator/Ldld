@@ -99,5 +99,9 @@ Static IP
 
 CPU limits
 
-    $API -d 'name=web-1&value=100' $API_HOST/cpu
-    
+    $API -d 'name=web-1&value=1' $API_HOST/cpu
+
+
+Processes limits
+
+    $API -d 'name=web-1&value=32' $API_HOST/processes

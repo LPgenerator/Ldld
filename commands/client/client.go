@@ -224,16 +224,20 @@ func (c *LdlCli) Memory(name string, value string) map[string]string {
 	if limit == "soft" {
 		return c.doCGroup(name, "memory.soft_limit_in_bytes", size)
 	}
+	//todo: with swap?
 	return c.doCGroup(name, "memory.limit_in_bytes", size)
 }
 
 func (c *LdlCli) Swap(name string, value string) map[string]string {
-	//CONFIG_CGROUP_MEM_RES_CTLR_SWAP=y ???
 	return c.doCGroup(name, "memory.memsw.limit_in_bytes", c.convertMbToBytes(value))
 }
 
 func (c *LdlCli) Cpu(name string, value string) map[string]string {
 	return c.doCGroup(name, "cpu.shares", value)
+}
+
+func (c *LdlCli) Processes(name string, value string) map[string]string {
+	return c.doCGroup(name, "pids.max", value)
 }
 
 func (c *LdlCli) Cgroup(name string, group string, value string) map[string]string {
