@@ -111,6 +111,10 @@ func HandleNetworking(w http.ResponseWriter, r *http.Request) {
 	helpers.DoubleVarView(w, r, "name", "value", LD.cli.Networking)
 }
 
+func HandleDisk(w http.ResponseWriter, r *http.Request) {
+	helpers.DoubleVarView(w, r, "name", "value", LD.cli.Disk)
+}
+
 func New(path string, repo string, addr string, dist string, fs string) (*LdlCliApi) {
 	strm := &LdlCliApi{
 		path: path,
@@ -149,6 +153,7 @@ func (c *LdlCliApi) Run(login string, password string) {
 	mux.HandleFunc("/cpu", HandleCpu)
 	mux.HandleFunc("/processes", HandleProcesses)
 	mux.HandleFunc("/network", HandleNetworking)
+	mux.HandleFunc("/disk", HandleDisk)
 
 	n := negroni.New()
 	n.Use(helpers.LogMiddleware())

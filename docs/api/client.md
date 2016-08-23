@@ -99,7 +99,7 @@ Static IP
 
 CPU limits
 
-    $API -d 'name=web-1&value=1' $API_HOST/cpu
+    $API -d 'name=web-1&value=100' $API_HOST/cpu
 
 
 Processes limits
@@ -110,3 +110,8 @@ Processes limits
 Network limits
 
     $API -d 'name=web-1&value=veth2P6NB7 5' $API_HOST/network
+
+
+Disk limits
+
+    $API -d 'name=web-1&value=5' $API_HOST/disk

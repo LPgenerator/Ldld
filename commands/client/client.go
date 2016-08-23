@@ -27,6 +27,7 @@ lxc.rootfs = /var/lib/lxc/%s/rootfs
 lxc.mount = /var/lib/lxc/%s/fstab
 lxc.utsname = %s
 lxc.arch = amd64
+lxc.tty = 1
 `
 
 var CT_IFCONFIG = `
@@ -213,7 +214,7 @@ func (c *LdlCli) Forward(name string, value string) map[string]string {
 
 func (c *LdlCli) Memory(name string, value string) map[string]string {
 	val := strings.Split(value, ":")
-	limit := "soft"
+	limit := "hard"
 	if len(val) > 1 {
 		value = val[0]
 		limit = val[1]
@@ -242,6 +243,19 @@ func (c *LdlCli) Processes(name string, value string) map[string]string {
 
 func (c *LdlCli) Networking(name string, value string) map[string]string {
 	return c.doCGroup(name, "net_prio.ifpriomap", value)
+}
+
+func (c *LdlCli) Disk(name string, value string) map[string]string {
+	helpers.SaveLXCDirective(name, "lxc.cgroup.blkio.weight", "0")
+	priority, err := strconv.Atoi(value)
+	if err == nil {
+		priority := priority * 100
+		if priority == 0 {
+			priority = 10
+		}
+		return c.doCGroup(name, "blkio.weight", fmt.Sprintf("%d", priority))
+	}
+	return c.doCGroup(name, "test", value)
 }
 
 func (c *LdlCli) Cgroup(name string, group string, value string) map[string]string {
