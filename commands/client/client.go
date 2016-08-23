@@ -52,6 +52,7 @@ var (
 	MIGRATE_CFG = `scp /var/lib/lxc/%s/config %s:/var/lib/lxc/%s/`
 	MIGRATE_ZFS = `zfs send lpg/lxc/%s@migrate | ssh %s zfs recv -F lpg/lxc/%s`
 	MIGRATE_MP = `ssh %s zfs set mountpoint=/var/lib/lxc/%s/rootfs lpg/lxc/%s`
+	ZFS_QUOTA = `zfs set quota=%sM ldld/lxc/%s`
 )
 
 
@@ -256,6 +257,10 @@ func (c *LdlCli) Disk(name string, value string) map[string]string {
 		return c.doCGroup(name, "blkio.weight", fmt.Sprintf("%d", priority))
 	}
 	return c.doCGroup(name, "test", value)
+}
+
+func (c *LdlCli) Quota(name string, value string) map[string]string {
+	return helpers.ExecRes(ZFS_QUOTA, value, name)
 }
 
 func (c *LdlCli) Cgroup(name string, group string, value string) map[string]string {

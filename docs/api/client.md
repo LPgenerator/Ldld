@@ -115,3 +115,8 @@ Network limits
 Disk limits
 
     $API -d 'name=web-1&value=5' $API_HOST/disk
+
+
+Disk quota
+
+    $API -d 'name=web-1&value=2048' $API_HOST/disk

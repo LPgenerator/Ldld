@@ -125,6 +125,7 @@ func (r *RunShell) RunLdlControlCli(c *cli.Context) {
 	r.regCmd(cli, c, "processes", "Processes", key, val)
 	r.regCmd(cli, c, "network", "Networking", key, val)
 	r.regCmd(cli, c, "disk", "Disk", key, val)
+	r.regCmd(cli, c, "quota", "Quota", key, val)
 
 	r.regCmd(cli, c, "mount", "Mount", key, val, c.Args().Get(2))
 	r.regCmd(cli, c, "unmount", "Unmount", key, val)
@@ -171,6 +172,7 @@ func init() {
 		"processes": "Processes limits.",
 		"network": "Networking limits.",
 		"disk": "Disk limits.",
+		"quota": "Disk quota (on MB; ZFS only)",
 		"memory": "Memory limits. Set a maximum RAM (on MB).",
 		"swap": "Swap limits. Set a maximum swap (on MB).",
 		"cpu": "CPU limits based on CPU shares.",
