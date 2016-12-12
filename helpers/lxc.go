@@ -38,6 +38,9 @@ func SaveLXCDirective(name string, group string, value string) bool {
 
 
 func SaveHostInfo(name string, ct_etc string) map[string]string {
+	hostname, err := os.Hostname(); if err == nil {
+		name = fmt.Sprintf("%s.%s", name, hostname)
+	}
 	if !FileExists(ct_etc) && os.MkdirAll(ct_etc, 0755) != nil {
 		return map[string]string{"status": "error", "message": "can not create etc"}
 	}
