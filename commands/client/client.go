@@ -127,7 +127,7 @@ lxc.network.link = lxcbr0
 
 	res = c.backend.Optimize(name)
 	if res["status"] != "ok" {
-		return c.errorMsg("Can optimze fs")
+		return c.errorMsg("Can not optimze fs")
 	}
 
 	post_create := c.backend.AfterCreate(template, name)
